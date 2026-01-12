@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row mt-3">
+  <div class="col-lg-7">
+    <div class="sb-card p-4">
+      <h3 class="mb-3">Messages</h3>
+      {% if threads %}
+        <ul class="list-group list-group-flush">
+          {% for t in threads %}
+          <li class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center">
+
+            <div class="d-flex align-items-center">
+              <div class="sb-avatar me-2">
+                {{ (t.other_name or t.other_uid)[0]|upper }}
+              </div>
+              <div>
+                <div class="fw-semibold d-flex align-items-center">
+                  {{ t.other_name or t.other_uid }}
+                  {% if t.is_online %}
+                    <span class="sb-status-dot ms-2" title="Online"></span>
+                  {% endif %}
+                </div>
+
+                {% if t.last_text %}
+                  <div class="small text-muted text-truncate" style="max-width: 260px;">
+                    {{ t.last_text }}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center">
+              {% if t.unread_count and t.unread_count > 0 %}
+                <span class="sb-unread-badge me-2">{{ t.unread_count }}</span>
+              {% endif %}
+              <form method="post"
+                    action="{{ url_for('chat.delete_thread', other_uid=t.other_uid) }}"
+                    class="me-2 mb-0">
+                <button type="submit"
+                        class="btn btn-sm btn-outline-danger"
+                        title="Remove this conversation from your inbox">
+                  Delete
+                </button>
+              </form>
+              <a href="{{ url_for('chat.thread', other_uid=t.other_uid) }}"
+                 class="btn btn-sm sb-btn-primary">
+                Open chat
+              </a>
+            </div>
+
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted mb-0">No conversations yet. Start by messaging a friend or tutor.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

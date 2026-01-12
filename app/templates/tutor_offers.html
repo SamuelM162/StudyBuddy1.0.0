@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row mt-3">
+  <div class="col-lg-8">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h3 class="mb-0">Tutoring offers</h3>
+      <a href="{{ url_for('tutor.new_offer') }}" class="btn sb-btn-primary btn-sm">New offer</a>
+    </div>
+    <div class="sb-card p-3">
+      {% if offers %}
+        {% for o in offers %}
+        <div class="card sb-subcard mb-2">
+          <div class="card-body d-flex justify-content-between">
+            <div>
+              <h6 class="mb-1">{{ o.subject }}</h6>
+              <div class="small text-muted mb-1">by {{ o.owner_email }}</div>
+              <p class="mb-1">{{ o.description }}</p>
+              {% if o.rate %}<div class="small">Rate: {{ o.rate }}</div>{% endif %}
+            </div>
+            <div class="text-end">
+              <a href="{{ url_for('chat.thread', other_uid=o.owner_id) }}" class="btn btn-sm sb-btn-primary">Contact tutor</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted mb-0">No tutoring offers yet.</p>
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-4 mt-3 mt-lg-0">
+    <div class="sb-card p-3">
+      <h5>Need help?</h5>
+      <p class="small text-muted">If you can't find what you need here, try posting a tutoring request.</p>
+      <a href="{{ url_for('tutor.requests_list') }}" class="btn sb-btn-outline w-100 mb-2">View requests</a>
+      <a href="{{ url_for('tutor.new_request') }}" class="btn sb-btn-primary w-100">New request</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

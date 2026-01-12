@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row mt-3">
+  <div class="col-lg-6 col-md-8 mx-auto">
+    <div class="sb-card p-4">
+      <h3 class="mb-3">Suggested study matches</h3>
+      {% if suggestions %}
+        {% for s in suggestions %}
+        <div class="card sb-subcard mb-2" style="border-radius:12px;">
+          <div class="card-body" style="text-align: left;">
+            <div>
+              <h6 class="mb-1">{{ s.display_name }}</h6>
+              {% if s.faculty %}
+                <div class="small text-muted">{{ s.faculty }}</div>
+              {% endif %}
+              <div class="small mt-1">
+                Interests:
+                {% for i in s.interests %}
+                  <span class="badge bg-secondary me-1">{{ i }}</span>
+                {% endfor %}
+              </div>
+              <div class="small text-success mt-1">
+                Shared subjects: {{ s.shared_count }}
+              </div>
+            </div>
+            <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
+              <a href="{{ url_for('profile.view_profile', uid=s.uid) }}" class="btn btn-sm sb-btn-outline">View</a>
+              <a href="{{ url_for('social.send_request', target_uid=s.uid) }}" class="btn btn-sm sb-btn-primary">Add friend</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">No suggestions yet. Add some subjects to your profile to get matches.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

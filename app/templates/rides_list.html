@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row mt-3 g-3">
+  <div class="col-lg-8">
+    <div class="sb-card p-4">
+      <h3 class="mb-3">Ride sharing</h3>
+      <p class="text-muted">
+        Find or offer rides with other students.
+      </p>
+
+      {% if rides %}
+        <ul class="list-group list-group-flush">
+          {% for r in rides %}
+            <li class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-start">
+              <div class="me-3">
+                <div class="fw-semibold">
+                  {{ r.from_location }} → {{ r.to_location }}
+                </div>
+
+                {% if r.departure_time %}
+                  <div class="small text-muted">
+                    {{ r.departure_time }}
+                  </div>
+                {% endif %}
+
+                <div class="small text-muted mt-1">
+                  Seats:
+                  {{ r.seats_taken }}/{{ r.seats_total }}
+                  {% if r.seats_left > 0 %}
+                    · {{ r.seats_left }} left
+                  {% else %}
+                    · Full
+                  {% endif %}
+                </div>
+
+                {% if r.contribution %}
+                  <div class="small text-muted">
+                    Contribution: {{ r.contribution }}
+                  </div>
+                {% endif %}
+
+                {% if r.notes %}
+                  <div class="small text-muted">
+                    Notes: {{ r.notes }}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="text-end d-flex flex-column align-items-end justify-content-between">
+                <!-- Status badge row (fixed height using invisible placeholder) -->
+                <div class="mb-1">
+                  {% if r.is_driver %}
+                    <span class="badge bg-secondary d-inline-block">Your ride</span>
+                  {% elif r.is_passenger %}
+                    <span class="badge bg-success d-inline-block">You joined</span>
+                  {% elif r.is_full %}
+                    <span class="badge bg-danger d-inline-block">Full</span>
+                  {% else %}
+                    <!-- invisible placeholder to keep layout from jumping -->
+                    <span class="badge invisible d-inline-block">Status</span>
+                  {% endif %}
+                </div>
+
+                <!-- Action buttons row -->
+                <div class="d-flex flex-column align-items-end">
+                  <a href="{{ url_for('chat.thread', other_uid=r.driver_id) }}"
+                     class="btn btn-sm sb-btn-outline mb-1">
+                    Message driver
+                  </a>
+
+                  {% if r.is_driver %}
+                    <form method="post"
+                          action="{{ url_for('rides.cancel_ride', ride_id=r.id) }}"
+                          class="mt-1">
+                      <button type="submit" class="btn btn-sm btn-outline-danger">
+                        Cancel ride
+                      </button>
+                    </form>
+
+                  {% elif r.is_passenger %}
+                    <form method="post"
+                          action="{{ url_for('rides.leave_ride', ride_id=r.id) }}"
+                          class="mt-1">
+                      <button type="submit" class="btn btn-sm btn-outline-secondary">
+                        Leave ride
+                      </button>
+                    </form>
+
+                  {% elif not r.is_full %}
+                    <form method="post"
+                          action="{{ url_for('rides.join_ride', ride_id=r.id) }}"
+                          class="mt-1">
+                      <button type="submit" class="btn btn-sm sb-btn-primary">
+                        Join ride
+                      </button>
+                    </form>
+                  {% endif %}
+                </div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted mb-0">No rides available yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sb-card p-4">
+      <h5 class="mb-3">Create a ride</h5>
+      <p class="mb-2 small text-muted">
+        Offer a ride and let other students join.
+      </p>
+      <a href="{{ url_for('rides.new_ride') }}" class="btn sb-btn-primary w-100">
+        New ride
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

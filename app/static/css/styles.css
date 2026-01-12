@@ -1,0 +1,902 @@
+:root {
+  --sb-bg: #050816;
+  --sb-bg-alt: #0f172a;
+  --sb-accent: #2563eb;
+  --sb-accent-soft: rgba(99, 102, 241, 0.15);
+  --sb-accent-2: #22d3ee;
+  --sb-text-main: #e5e7eb;
+  --sb-text-muted: #9ca3af;
+}
+
+html[data-bs-theme='light'] {
+  --sb-bg: #f3f4f6;
+  --sb-bg-alt: #ffffff;
+  --sb-text-main: #111827;
+  --sb-text-muted: #6b7280;
+
+  /* Navbar text color fix for light mode */
+  --sb-navbar-text: #1a1a1a;
+}
+
+.sb-body {
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, #1d4ed8 0, transparent 55%),
+              radial-gradient(circle at bottom right, #22d3ee 0, transparent 55%),
+              var(--sb-bg);
+  color: var(--sb-text-main);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+}
+
+.sb-navbar {
+  backdrop-filter: blur(18px);
+  background: rgba(15, 23, 42, 0.92);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* --- Navbar: keep profile/avatar visible on mobile --- */
+.sb-navbar .sb-avatar,
+.sb-navbar .profile-btn,
+.sb-navbar .profile-icon,
+.sb-navbar .user-menu {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+}
+
+.sb-navbar .navbar-nav,
+.sb-navbar .navbar-brand,
+.sb-navbar .navbar-toggler {
+  flex-shrink: 0;
+}
+
+@media (max-width: 576px) {
+  /* Avoid clipping items on small widths */
+  .sb-navbar,
+  .sb-navbar .container,
+  .sb-navbar .container-fluid,
+  .sb-navbar .navbar-collapse {
+    overflow: visible !important;
+  }
+
+  /* Force avatar/profile controls to remain visible even if other rules hide them */
+  .sb-navbar .sb-avatar,
+  .sb-navbar .profile-btn,
+  .sb-navbar .profile-icon,
+  .sb-navbar .user-menu {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Keep header items aligned and prevent wrapping glitches */
+  .sb-navbar .navbar-brand {
+    max-width: 60vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+html[data-bs-theme='light'] .sb-navbar {
+  background: rgba(249, 250, 251, 0.92);
+  border-bottom-color: rgba(209, 213, 219, 0.7);
+}
+
+/* Navbar toggler reset */
+.sb-navbar .navbar-toggler {
+    border-color: transparent;
+}
+
+.sb-navbar .navbar-toggler:focus {
+    box-shadow: none;
+}
+
+/* Custom hamburger icon using currentColor + X animation (fixed) */
+.sb-navbar .navbar-toggler-icon {
+  position: relative;
+  display: inline-block;
+  width: 1.6rem;
+  height: 1.2rem;
+  background: none !important;
+  background-image: none !important; /* override Bootstrap */
+}
+
+/* Middle line */
+.sb-navbar .navbar-toggler-icon::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: currentColor;
+  transform: translateY(-50%);
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+/* Top + bottom lines */
+.sb-navbar .navbar-toggler-icon::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: currentColor;
+  transition: transform 0.25s ease, top 0.25s ease;
+}
+
+.sb-navbar .navbar-toggler-icon span {
+  display: none; /* safety: if any inner spans exist */
+}
+
+/* Create bottom line using box-shadow on the top line */
+.sb-navbar .navbar-toggler-icon::before {
+  box-shadow: 0 0.5rem 0 0 currentColor, 0 1rem 0 0 currentColor;
+}
+
+/* LIGHT / DARK explicit colors */
+html[data-bs-theme="light"] .sb-navbar .navbar-toggler-icon,
+html[data-bs-theme="light"] .sb-navbar .navbar-toggler-icon::before,
+html[data-bs-theme="light"] .sb-navbar .navbar-toggler-icon::after {
+  color: #000000;
+}
+
+html[data-bs-theme="dark"] .sb-navbar .navbar-toggler-icon,
+html[data-bs-theme="dark"] .sb-navbar .navbar-toggler-icon::before,
+html[data-bs-theme="dark"] .sb-navbar .navbar-toggler-icon::after {
+  color: #ffffff;
+}
+
+/* When menu is open → animate to X */
+.sb-navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon::before {
+  top: 50%;
+  box-shadow: none; /* remove the extra lines */
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.sb-navbar .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon::after {
+  opacity: 1;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+html[data-bs-theme='light'] .sb-navbar,
+html[data-bs-theme='light'] .sb-navbar a,
+html[data-bs-theme='light'] .sb-navbar .nav-link,
+html[data-bs-theme='light'] .sb-navbar .navbar-brand {
+    color: var(--sb-navbar-text) !important;
+}
+
+html[data-bs-theme='light'] .sb-navbar .nav-link:hover {
+    color: #000000 !important;
+}
+
+.sb-main {
+  padding-top: 80px;
+  padding-bottom: 40px;
+}
+
+.sb-card {
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.8),
+    0 0 0 1px rgba(15, 23, 42, 0.9);
+}
+
+html[data-bs-theme='light'] .sb-card {
+  background: #ffffff;
+  box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(229, 231, 235, 0.9);
+}
+
+.sb-subcard {
+  background: rgba(15, 23, 42, 0.85);
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+html[data-bs-theme='light'] .sb-subcard {
+  background: #f9fafb;
+  border-color: rgba(209, 213, 219, 0.8);
+}
+
+.sb-btn-primary {
+  background: linear-gradient(135deg, var(--sb-accent), var(--sb-accent-2));
+  border: none;
+  color: #f9fafb;
+}
+
+.sb-btn-primary:hover {
+  filter: brightness(1.05);
+  color: #ffffff;
+}
+
+.sb-btn-outline {
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: transparent;
+  color: var(--sb-text-main);
+}
+
+.sb-btn-outline:hover {
+  background: rgba(148, 163, 184, 0.15);
+}
+
+/* Chat UI */
+
+.sb-chat-box {
+  max-height: 380px;
+  overflow-y: auto;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.sb-chat-messages {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+html[data-bs-theme='light'] .sb-chat-box {
+  background: #f9fafb;
+}
+
+.sb-message-me {
+  text-align: right;
+}
+
+.sb-message-me,
+.sb-message-other{
+  margin: 0.35rem 0;
+}
+
+.sb-bubble {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+
+.sb-message-me .sb-bubble {
+  background: linear-gradient(135deg, var(--sb-accent), var(--sb-accent-2));
+  color: #f9fafb;
+}
+
+.sb-message-other .sb-bubble {
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--sb-text-main);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+html[data-bs-theme='light'] .sb-message-other .sb-bubble {
+  background: #e5e7eb;
+  color: #111827;
+  border-color: transparent;
+}
+
+
+.sb-ai-widget{
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+
+  width: 360px;
+  height: 460px;
+
+  /* Do not allow resizing smaller than the composer area */
+  min-width: 320px;
+  min-height: 420px;
+
+  max-width: min(700px, 95vw);
+  max-height: min(720px, 90vh);
+
+  background: rgba(15,23,42,.95);
+  border-radius: 18px;
+  border: 1px solid rgba(148,163,184,.35);
+  box-shadow: 0 16px 40px rgba(15,23,42,.8);
+
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+
+  /* Critical: prevent the whole widget from scrolling */
+  overflow: hidden;
+
+  /* Allow resize, but keep it stable */
+  resize: both;
+
+  z-index: 1050;
+}
+
+html[data-bs-theme='light'] .sb-ai-widget{
+  background:#ffffff;
+}
+
+/* HEADER – always on top */
+.sb-ai-header{
+  flex: 0 0 auto;
+  padding: .45rem .7rem;
+  border-bottom: 1px solid rgba(148,163,184,.4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: inherit;
+}
+
+/* MESSAGES – the only scrollable region */
+.sb-ai-messages{
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: .6rem .7rem;
+
+  /* CRITICAL for flex children with overflow */
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* COMPOSER/INPUT – pinned to bottom */
+.sb-ai-form{
+  flex: 0 0 auto;
+  padding: .45rem .7rem;
+  border-top: 1px solid rgba(148,163,184,.4);
+  background: inherit;
+}
+
+.sb-ai-form input,
+.sb-ai-form textarea{
+  width: 100%;
+  display: block;
+  margin: 0;
+}
+
+/* Optional: ensure message blocks don't collapse margins oddly */
+.sb-ai-messages > *{
+  margin: 0;
+}
+
+/* MOBIL */
+@media (max-width: 576px){
+  .sb-ai-widget{
+    right: .5rem;
+    bottom: .75rem;
+    width: calc(100vw - 1rem);
+    height: 60vh;
+
+    min-width: 0;
+    min-height: 0;
+
+    resize: none;
+  }
+}
+
+
+.sb-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  background: linear-gradient(135deg, #2563eb, #22d3ee);
+  color: #ffffff;
+}
+
+html[data-bs-theme='light'] .sb-avatar {
+  background: linear-gradient(135deg, #2563eb, #22d3ee);
+}
+
+.sb-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background-color: #22c55e;
+}
+
+.sb-unread-badge {
+  min-width: 22px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  background-color: #f97316;
+  color: #ffffff;
+}
+
+/* Inbox list item hover */
+.list-group-item.bg-transparent.text-light:hover {
+  background-color: rgba(148, 163, 184, 0.08);
+}
+
+html[data-bs-theme='light'] .list-group-item.bg-transparent.text-light:hover {
+  background-color: rgba(229, 231, 235, 0.9);
+}
+
+/* Dashboard cards – align actions to the bottom */
+.sb-subcard .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.sb-subcard .card-body .card-text {
+    margin-bottom: auto; /* pushes the button row to the bottom */
+}
+
+/* Increase spacing between text and buttons */
+.sb-subcard .card-body .mt-auto {
+    margin-top: auto;        /* keep buttons pushed to the bottom */
+    padding-top: 1.25rem;    /* adds breathing room above the button row */
+}
+
+/* Make dashboard boxes slightly taller */
+.sb-subcard {
+  min-height: auto;
+  padding: 0.75rem 1rem;
+}
+
+
+/* Markdown-friendly spacing for AI messages */
+.sb-ai-message-bot p {
+    margin-bottom: 0.35rem;
+}
+
+.sb-ai-message-bot ul,
+.sb-ai-message-bot ol {
+    padding-left: 1.2rem;
+    margin-bottom: 0.4rem;
+}
+
+.sb-ai-message-bot li {
+    margin-bottom: 0.15rem;
+}
+
+/* Theme-specific colors for AI widget header buttons */
+html[data-bs-theme="light"] .sb-ai-header .btn.btn-link {
+    color: #111827 !important;      /* tmavý text v light UI */
+}
+
+html[data-bs-theme="dark"] .sb-ai-header .btn.btn-link {
+    color: #f9fafb !important;      /* svetlý text v dark UI */
+}
+
+
+.sb-ai-bubble {
+  position: fixed;
+  right: 1.2rem;
+  bottom: 1.2rem;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: var(--sb-accent);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  z-index: 1100;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Light mode bubble color */
+html[data-bs-theme="light"] .sb-ai-bubble {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+/* Hover effect */
+.sb-ai-bubble:hover {
+  transform: scale(1.07);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.3);
+}
+
+/* AI widget hidden state fix */
+#ai-widget[style*="display: none"] {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+#ai-widget {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sb-theme-toggle {
+    border: none !important;
+    background: transparent !important;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none !important;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* Theme item in hamburger/offcanvas: look like the other menu items */
+.sb-hamburger .sb-theme-toggle {
+  width: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+
+  /* match nav-link spacing */
+  padding: 0.55rem 1rem;
+  margin: 0;
+
+  border: 0 !important;
+  background: transparent !important;
+  border-radius: 0.6rem;
+
+  text-decoration: none !important;
+  font: inherit;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+/* Make icon column consistent so text aligns with Profile/Friends */
+.sb-hamburger .sb-theme-toggle svg,
+.sb-hamburger .sb-theme-toggle i,
+.sb-hamburger .sb-theme-toggle .sb-theme-toggle-icon {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Colors: dark vs light */
+html[data-bs-theme="dark"] .sb-hamburger .sb-theme-toggle {
+  color: #e5e7eb !important;
+}
+
+html[data-bs-theme="light"] .sb-hamburger .sb-theme-toggle {
+  color: #111827 !important;
+}
+
+/* Hover/focus like the other items (subtle background, no underline) */
+html[data-bs-theme="dark"] .sb-hamburger .sb-theme-toggle:hover,
+html[data-bs-theme="dark"] .sb-hamburger .sb-theme-toggle:focus {
+  background: rgba(148, 163, 184, 0.12) !important;
+  text-decoration: none !important;
+  outline: none;
+}
+
+html[data-bs-theme="light"] .sb-hamburger .sb-theme-toggle:hover,
+html[data-bs-theme="light"] .sb-hamburger .sb-theme-toggle:focus {
+  background: rgba(17, 24, 39, 0.06) !important;
+  text-decoration: none !important;
+  outline: none;
+}
+
+/* Ensure any nested SVG uses current text color */
+.sb-hamburger .sb-theme-toggle svg {
+  color: currentColor;
+  fill: currentColor;
+}
+
+/* kill link underline everywhere inside hamburger/offcanvas */
+.sb-hamburger a,
+.sb-hamburger a:link,
+.sb-hamburger a:visited,
+.sb-hamburger a:hover,
+.sb-hamburger a:active {
+  text-decoration: none !important;
+}
+
+.sb-theme-toggle-icon {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+html[data-bs-theme="dark"] .sb-theme-toggle-icon {
+    color: #e5e7eb;
+}
+
+html[data-bs-theme="light"] .sb-theme-toggle-icon {
+    color: #111827;
+}
+
+/* === OVERRIDE: Theme button in hamburger uses #themeToggle + .sb-menu-item (align with Profile/Friends) === */
+.sb-hamburger #themeToggle.sb-menu-item {
+  width: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+
+  /* make it behave like the other menu rows (your links have p-0) */
+  padding: 0 !important;
+  margin: 0;
+
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+
+  text-decoration: none !important;
+  font: inherit;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+/* match icon column sizing to the SVG links */
+.sb-hamburger #themeToggle.sb-menu-item .sb-ico {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 18px;
+}
+
+/* ensure nested svgs (if you swap emoji later) follow currentColor */
+.sb-hamburger #themeToggle.sb-menu-item svg {
+  width: 18px;
+  height: 18px;
+  color: currentColor;
+  fill: currentColor;
+}
+
+html[data-bs-theme="dark"] .sb-hamburger #themeToggle.sb-menu-item {
+  color: #e5e7eb !important;
+}
+
+html[data-bs-theme="light"] .sb-hamburger #themeToggle.sb-menu-item {
+  color: #111827 !important;
+}
+
+/* no underline even if browser treats button text like a link in some resets */
+.sb-hamburger #themeToggle.sb-menu-item,
+.sb-hamburger #themeToggle.sb-menu-item * {
+  text-decoration: none !important;
+}
+
+html[data-bs-theme="dark"] .sb-hamburger #themeToggle.sb-menu-item:hover,
+html[data-bs-theme="dark"] .sb-hamburger #themeToggle.sb-menu-item:focus {
+  background: rgba(148, 163, 184, 0.12) !important;
+  outline: none;
+}
+
+html[data-bs-theme="light"] .sb-hamburger #themeToggle.sb-menu-item:hover,
+html[data-bs-theme="light"] .sb-hamburger #themeToggle.sb-menu-item:focus {
+  background: rgba(17, 24, 39, 0.06) !important;
+  outline: none;
+}
+
+/* --- Chat: typing indicator + delivered/seen status --- */
+.typing-indicator{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top: auto;          /* push to bottom of chat */
+  padding: 6px 4px 2px;
+  opacity: .85;
+  font-size: 0.9rem;
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(
+    to top,
+    rgba(15,23,42,0.95),
+    rgba(15,23,42,0.0)
+  );
+}
+
+html[data-bs-theme='light'] .typing-indicator{
+  background: linear-gradient(
+    to top,
+    rgba(249,250,251,0.95),
+    rgba(249,250,251,0.0)
+  );
+}
+
+.typing-name{
+  font-weight: 600;
+}
+
+.typing-dots{
+  display:inline-flex;
+  gap:4px;
+  margin-left: 2px;
+}
+
+.typing-dots span{
+  width:6px;
+  height:6px;
+  border-radius:999px;
+  background: currentColor;
+  opacity:.55;
+  transform: translateY(0);
+  animation: typingDot 1s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(2){ animation-delay: .15s; }
+.typing-dots span:nth-child(3){ animation-delay: .3s; }
+
+@keyframes typingDot{
+  0%, 80%, 100% { transform: translateY(0); opacity:.45; }
+  40% { transform: translateY(-3px); opacity:.9; }
+}
+
+.msg-status{
+  margin-top: 6px;
+  font-size: .82rem;
+  opacity: .75;
+  text-align: right;
+}
+
+.msg-status .status.seen{
+  opacity: .95;
+}
+
+.msg-status .status.delivered{
+  opacity: .75;
+}
+
+/* --- Mobile menu: right-align user action icons (theme / profile / logout) --- */
+@media (max-width: 992px) {
+  /* common wrappers we use across templates */
+  .sb-navbar .offcanvas-body .sb-user-actions,
+  .sb-navbar .offcanvas-body .sb-nav-actions,
+  .sb-navbar .offcanvas-body .navbar-nav.align-items-center,
+  .sb-navbar .navbar-collapse .navbar-nav.align-items-center {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    padding-right: 1rem;
+  }
+
+  /* if the actions are stacked vertically in some layouts */
+  .sb-navbar .offcanvas-body .navbar-nav.flex-column.align-items-center {
+    align-items: flex-end !important;
+  }
+}
+
+/* === FIX: navbar-expand-xl collapse (<1200px) should keep actions on the RIGHT === */
+@media (max-width: 1199.98px) {
+  /* Make the collapsed area a vertical stack: menu first, actions second */
+  .sb-navbar .navbar-collapse {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* When OPEN, use flex column layout */
+  .sb-navbar .navbar-collapse.show {
+    display: flex !important;
+  }
+
+  /* Left menu stays full width */
+  .sb-navbar .navbar-collapse > .navbar-nav.me-auto {
+    width: 100%;
+  }
+
+  /* Actions block snaps to the right edge */
+  .sb-navbar .navbar-collapse > .sb-nav-actions {
+    width: auto !important;
+    margin-left: auto !important;
+    align-self: flex-end !important;
+    padding-right: 1rem;
+  }
+
+  /* Each action item right-aligned and stacked */
+  .sb-navbar .navbar-collapse > .sb-nav-actions > .sb-nav-action-item,
+  .sb-navbar .navbar-collapse > .sb-nav-actions > .nav-item {
+    width: auto;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* Neutralize old alignment helpers that can center/left-shift */
+  .sb-navbar .navbar-collapse .sb-nav-actions.align-items-center,
+  .sb-navbar .navbar-collapse .sb-nav-actions.align-items-end {
+    align-items: flex-end !important;
+  }
+
+  /* === Theme item alignment inside hamburger/offcanvas === */
+  /* Make Theme row match nav-link rows (Profile/Friends/Logout) */
+  .sb-hamburger .sb-theme-toggle,
+  .sb-hamburger .nav-link {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.6rem;
+    padding: 0.55rem 1rem;
+    margin: 0;
+    border-radius: 0.6rem;
+    text-decoration: none !important;
+    font: inherit;
+    line-height: 1.25;
+  }
+
+  /* Ensure Theme button behaves like a link row (no default button styles) */
+  .sb-hamburger .sb-theme-toggle {
+    border: 0 !important;
+    background: transparent !important;
+    cursor: pointer;
+  }
+
+  /* Make the icon column consistent so text aligns across rows */
+  .sb-hamburger .sb-theme-toggle svg,
+  .sb-hamburger .sb-theme-toggle i,
+  .sb-hamburger .sb-theme-toggle .sb-theme-toggle-icon,
+  .sb-hamburger .nav-link svg,
+  .sb-hamburger .nav-link i {
+    width: 18px;
+    min-width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Colors: dark vs light */
+  html[data-bs-theme="dark"] .sb-hamburger .sb-theme-toggle,
+  html[data-bs-theme="dark"] .sb-hamburger .nav-link {
+    color: #e5e7eb !important;
+  }
+
+  html[data-bs-theme="light"] .sb-hamburger .sb-theme-toggle,
+  html[data-bs-theme="light"] .sb-hamburger .nav-link {
+    color: #111827 !important;
+  }
+
+  /* Hover/focus like the other items */
+  html[data-bs-theme="dark"] .sb-hamburger .sb-theme-toggle:hover,
+  html[data-bs-theme="dark"] .sb-hamburger .sb-theme-toggle:focus,
+  html[data-bs-theme="dark"] .sb-hamburger .nav-link:hover,
+  html[data-bs-theme="dark"] .sb-hamburger .nav-link:focus {
+    background: rgba(148, 163, 184, 0.12) !important;
+    text-decoration: none !important;
+    outline: none;
+  }
+
+  html[data-bs-theme="light"] .sb-hamburger .sb-theme-toggle:hover,
+  html[data-bs-theme="light"] .sb-hamburger .sb-theme-toggle:focus,
+  html[data-bs-theme="light"] .sb-hamburger .nav-link:hover,
+  html[data-bs-theme="light"] .sb-hamburger .nav-link:focus {
+    background: rgba(17, 24, 39, 0.06) !important;
+    text-decoration: none !important;
+    outline: none;
+  }
+
+  /* Ensure any nested SVG uses current text color */
+  .sb-hamburger .sb-theme-toggle svg,
+  .sb-hamburger .nav-link svg {
+    color: currentColor;
+    fill: currentColor;
+  }
+
+  /* kill underline everywhere inside hamburger/offcanvas */
+  .sb-hamburger a,
+  .sb-hamburger a:link,
+  .sb-hamburger a:visited,
+  .sb-hamburger a:hover,
+  .sb-hamburger a:active {
+    text-decoration: none !important;
+  }
+
+  .sb-ai-widget.is-hidden{
+  display: none;
+}
+}

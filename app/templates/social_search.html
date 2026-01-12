@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row mt-3">
+  <div class="col-lg-8">
+    <div class="sb-card p-4">
+      <h3 class="mb-3">Search students</h3>
+      <form method="get" class="row g-2 mb-3">
+        <div class="col-9 col-md-10">
+          <input type="text" class="form-control" name="q" placeholder="Name, faculty or subject"
+                 value="{{ query }}">
+        </div>
+        <div class="col-3 col-md-2">
+          <button type="submit" class="btn sb-btn-primary w-100">Search</button>
+        </div>
+      </form>
+
+      {% if results %}
+        {% for u in results %}
+          <div class="card sb-subcard mb-2" style="padding: 0.6rem 0.8rem; max-width: 550px; margin-left: 0;">
+            <div class="card-body p-2">
+              <div class="mb-2">
+                <h6 class="mb-1">{{ u.display_name or u.email }}</h6>
+                {% if u.faculty %}
+                  <div class="small text-muted">{{ u.faculty }}</div>
+                {% endif %}
+                {% if u.interests %}
+                  <div class="small mt-1">
+                    {% for i in u.interests %}
+                      <span class="badge bg-secondary me-1">{{ i }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="{{ url_for('profile.view_profile', uid=u.uid) }}" class="btn btn-sm sb-btn-outline">View</a>
+
+                {% set rel = u.get('relation') if u is mapping else u.relation %}
+                {% if not rel %}{% set rel = 'none' %}{% endif %}
+
+                {% if rel == 'friend' %}
+                  <span class="badge bg-success">Friend</span>
+                {% elif rel == 'pending' %}
+                  <button type="button" class="btn btn-sm sb-btn-outline" disabled>Requested</button>
+                {% else %}
+                  <a href="{{ url_for('social.send_request', target_uid=u.uid) }}" class="btn btn-sm sb-btn-primary">Add friend</a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">No results yet. Try another keyword.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

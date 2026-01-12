@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <title>StudyBuddy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  </head>
+  <body class="sb-body">
+    <nav class="navbar navbar-dark sb-navbar fixed-top">
+      <div class="container-fluid">
+
+        <!-- Brand -->
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('main.index') }}">
+          <span class="navbar-brand-icon me-2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M2 9L12 4L22 9L12 14L2 9Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M6 11V16C6 16 8.5 18 12 18C15.5 18 18 16 18 16V11" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </span>
+          StudyBuddy
+        </a>
+
+        <!-- Inline nav links (desktop only) -->
+        <ul class="navbar-nav flex-row gap-3 d-none d-lg-flex">
+          {% if session.get('user_id') %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('social.suggestions') }}">Study matches</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('tutor.offers_list') }}">Tutoring</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('rides.rides_list') }}">Ride sharing</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('chat.inbox') }}">Messages</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('social.search_users') }}">Search</a></li>
+          {% endif %}
+        </ul>
+
+        <!-- Hamburger (ALWAYS visible) -->
+        <button class="navbar-toggler ms-auto"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#sbHamburger"
+                aria-expanded="false"
+                aria-label="Menu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+      </div>
+
+      <!-- Hamburger content -->
+      <div class="collapse sb-hamburger" id="sbHamburger">
+        <ul class="navbar-nav px-3 pt-3">
+
+          <!-- Nav links (mobile only) -->
+          {% if session.get('user_id') %}
+            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('social.suggestions') }}">Study matches</a></li>
+            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('tutor.offers_list') }}">Tutoring</a></li>
+            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('rides.rides_list') }}">Ride sharing</a></li>
+            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('chat.inbox') }}">Messages</a></li>
+            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('social.search_users') }}">Search</a></li>
+            <hr>
+          {% endif %}
+
+          <!-- Actions -->
+          <li class="nav-item d-flex flex-column align-items-start gap-3 mt-3">
+
+            <!-- Theme toggle -->
+            <button id="themeToggle"
+                    class="btn btn-sm sb-menu-item d-flex align-items-center gap-2">
+              <span class="sb-ico" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <span class="small">Theme</span>
+            </button>
+
+            {% if session.get('user_id') %}
+
+              <a class="nav-link d-flex align-items-center gap-2 p-0"
+                 href="{{ url_for('profile.edit_profile') }}">
+                <span class="sb-ico" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 21a8 8 0 1 0-16 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M12 13a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                <span class="small">Profile</span>
+              </a>
+
+              <a class="nav-link d-flex align-items-center gap-2 p-0"
+                 href="{{ url_for('social.friends_list') }}">
+                <span class="sb-ico" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8.5 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16.5 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                <span class="small">Friends</span>
+              </a>
+
+              <a class="btn btn-sm btn-primary mt-2 d-flex align-items-center gap-2"
+                 href="{{ url_for('auth.logout') }}">
+                <span class="sb-ico" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                <span>Logout</span>
+              </a>
+
+            {% else %}
+
+              <a class="btn btn-sm btn-outline-light d-flex align-items-center gap-2"
+                 href="{{ url_for('auth.login') }}">
+                <span class="sb-ico" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M10 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M15 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M21 21V3a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                <span>Login</span>
+              </a>
+
+              <a class="btn btn-sm btn-primary d-flex align-items-center gap-2"
+                 href="{{ url_for('auth.signup') }}">
+                <span class="sb-ico" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M19 8v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M22 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </span>
+                <span>Sign up</span>
+              </a>
+
+            {% endif %}
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <main class="sb-main container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, msg in messages %}
+            <div class="alert alert-{{ category if category!='message' else 'info' }} mt-2">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    {% if session.get('user_id') %}
+    <!-- Floating AI chat widget (hidden by default, opened via bubble) -->
+    <div id="ai-widget" class="sb-ai-widget is-hidden">
+      <div class="sb-ai-header d-flex justify-content-between align-items-center">
+        <span>StudyBuddy AI</span>
+        <div class="d-flex align-items-center gap-1">
+          <button type="button" class="btn btn-sm btn-link text-light p-0 sb-ai-toggle-size" title="Expand">▢</button>
+          <button class="btn btn-sm btn-link text-light p-0" id="ai-toggle">–</button>
+        </div>
+      </div>
+
+      <div id="ai-messages" class="sb-ai-messages">
+        <div class="sb-ai-message sb-ai-message-bot">
+          Hi! I'm your StudyBuddy assistant. Ask me about studying or how to use the app.
+        </div>
+      </div>
+
+      <form id="ai-form" class="sb-ai-form">
+        <input type="text" id="ai-input" class="form-control form-control-sm" placeholder="Type your question..." autocomplete="off">
+      </form>
+    </div>
+
+    <!-- Small messenger-style bubble to open AI widget -->
+    <button
+      id="ai-bubble"
+      type="button"
+      class="sb-ai-bubble"
+      aria-label="Open StudyBuddy AI chat"
+    >
+      <span class="sb-ai-bubble-icon">🤖</span>
+    </button>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
+</html>

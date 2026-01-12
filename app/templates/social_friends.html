@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row mt-3">
+  <div class="col-lg-8">
+    <div class="sb-card p-4 mb-3">
+      <h3 class="mb-3">My friends</h3>
+      {% if friends %}
+        <ul class="list-group list-group-flush">
+          {% for f in friends %}
+            <li class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ f.display_name }}</strong>
+                {% if f.faculty %}<div class="small text-muted">{{ f.faculty }}</div>{% endif %}
+              </div>
+              <div class="d-flex align-items-center">
+                <a href="{{ url_for('profile.view_profile', uid=f.uid) }}" class="btn btn-sm sb-btn-outline me-2">Profile</a>
+                <a href="{{ url_for('chat.thread', other_uid=f.uid) }}" class="btn btn-sm sb-btn-primary me-2">Message</a>
+                {% if f.is_blocked %}
+                  <a href="{{ url_for('social.unblock_user', uid=f.uid) }}" class="btn btn-sm btn-outline-warning">Unblock</a>
+                {% else %}
+                  <a href="{{ url_for('social.block_user', uid=f.uid) }}" class="btn btn-sm btn-outline-danger">Block</a>
+                {% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">You have no friends yet. Try searching for students or checking suggestions.</p>
+      {% endif %}
+    </div>
+
+    <div class="sb-card p-4 mb-3">
+      <h4 class="mb-3">Friend requests</h4>
+
+      <h6>Received</h6>
+      {% if received_requests %}
+        <ul class="list-group list-group-flush mb-3">
+          {% for r in received_requests %}
+          <li class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center">
+            <span>{{ r.display_name }}</span>
+            <span>
+              <a href="{{ url_for('social.accept_request', from_uid=r.uid) }}" class="btn btn-sm sb-btn-primary me-1">Accept</a>
+              <a href="{{ url_for('social.decline_request', from_uid=r.uid) }}" class="btn btn-sm sb-btn-outline">Decline</a>
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">No incoming friend requests.</p>
+      {% endif %}
+
+      <h6>Sent</h6>
+      {% if sent_requests %}
+        <ul class="list-group list-group-flush">
+          {% for r in sent_requests %}
+          <li class="list-group-item bg-transparent text-light">
+            Request sent to {{ r.display_name }}
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">No sent friend requests.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
