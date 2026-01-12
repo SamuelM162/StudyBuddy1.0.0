@@ -4,21 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="860eddd1-5308-4495-89eb-e6ba8871e2da" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/studybuddyismai-firebase-adminsdk-fbsvc-73c23ec017.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="860eddd1-5308-4495-89eb-e6ba8871e2da" name="Changes" comment="Security Updates">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/firebase_app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/firebase_app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/routes/ai_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/ai_routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/routes/auth_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/auth_routes.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/routes/chat_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/chat_routes.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/routes/profile_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/profile_routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/routes/rides_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/rides_routes.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/routes/social_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/social_routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/routes/tutor_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/tutor_routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/static/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/app/static/css/styles.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/static/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/static/js/main.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/templates/chat_thread.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/chat_thread.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -136,14 +126,27 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1768228453959</updated>
-      <workItem from="1768228454989" duration="14821000" />
+      <workItem from="1768228454989" duration="17389000" />
     </task>
+    <task id="LOCAL-00001" summary="Security Updates">
+      <option name="closed" value="true" />
+      <created>1768249358374</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1768249358374</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Security Updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="Security Updates" />
+  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/StudyBuddyISMAI$run.coverage" NAME="run Coverage Results" MODIFIED="1768249092235" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/StudyBuddyISMAI$run.coverage" NAME="run Coverage Results" MODIFIED="1768252319929" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

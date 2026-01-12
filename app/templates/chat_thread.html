@@ -295,6 +295,30 @@
   // koľko správ už máme vykreslených v DOM (len v #chat-messages)
   let renderedCount = document.querySelectorAll('#chat-messages > .mb-2').length;
 
+  function getLastOutgoingTsFromMessages(msgs){
+    const box = document.getElementById('chat-messages');
+    const me = box ? box.dataset.me : null;
+    if(!me || !Array.isArray(msgs)) return '';
+    // scan from end
+    for(let i = msgs.length - 1; i >= 0; i--){
+      const m = msgs[i];
+      if(m && m.sender_id === me && m.timestamp){
+        return String(m.timestamp);
+      }
+    }
+    return '';
+  }
+
+  function syncLastOutgoingTs(msgs){
+    if(!statusEl) return;
+    const ts = getLastOutgoingTsFromMessages(msgs);
+    if(ts){
+      statusEl.dataset.lastOutgoingTs = ts;
+      // ensure status block becomes visible once we have an outgoing msg
+      statusEl.style.display = 'block';
+    }
+  }
+
   function makeMessageHtml(m, me){
     const mine = (m.sender_id === me);
     return `
@@ -325,6 +349,8 @@ ${mine ? 'You' : escapeHtml(m.sender_email || '')}
 
     // nič nové -> nič nerob (žiadny DOM rewrite => žiadny scroll jump)
     if(msgs.length === renderedCount){
+      // even if nothing new rendered, keep lastOutgoingTs in sync
+      syncLastOutgoingTs(msgs);
       return;
     }
 
@@ -354,6 +380,8 @@ ${mine ? 'You' : escapeHtml(m.sender_email || '')}
 
       if(j && Array.isArray(j.messages)){
         renderMessages(j.messages);
+        // critical: update lastOutgoingTs based on latest outgoing message
+        syncLastOutgoingTs(j.messages);
       }
 
       const lastOutgoingTs = statusEl.dataset.lastOutgoingTs;

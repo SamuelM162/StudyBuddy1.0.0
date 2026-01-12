@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash
-from app.firebase_app import db
+from firebase_admin import db as admin_db
 from app.utils import login_required
 
 profile_bp = Blueprint("profile", __name__, url_prefix="/profile")
@@ -16,8 +16,8 @@ def edit_profile():
         flash("Session expired. Please log in again.", "warning")
         return redirect(url_for("auth.login"))
 
-    user_ref = db.child("users").child(uid)
-    current = user_ref.get().val() or {}
+    user_ref = admin_db.reference(f"users/{uid}")
+    current = user_ref.get() or {}
 
     if not current:
         user_ref.set({
@@ -28,7 +28,7 @@ def edit_profile():
             "interests": [],
             "is_tutor": False,
         })
-        current = user_ref.get().val() or {}
+        current = user_ref.get() or {}
 
     if request.method == "POST":
         display_name = request.form.get("display_name", "").strip()
@@ -77,7 +77,7 @@ def view_profile(uid):
     if (not uid) or uid == "/" or "/" in uid:
         flash("User not found.", "warning")
         return redirect(url_for("main.dashboard"))
-    profile = db.child("users").child(uid).get().val()
+    profile = admin_db.reference(f"users/{uid}").get()
     if not profile:
         flash("User not found.", "warning")
         return redirect(url_for("main.dashboard"))
