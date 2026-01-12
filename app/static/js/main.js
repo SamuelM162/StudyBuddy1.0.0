@@ -100,6 +100,63 @@ document.addEventListener("DOMContentLoaded", function () {
   setTimeout(sbUpdateNavbarFit, 150);
   setTimeout(sbUpdateNavbarFit, 600);
 
+  // === Normal chat: clear input after sending (do NOT override chat logic) ===
+  // Some browsers restore form values on navigation/back-forward cache; we force-clear on load + submit.
+  function sbWireChatInputClear() {
+    // Common selectors for your chat thread form/input
+    const chatFormEl =
+      document.getElementById("chat-form") ||
+      document.querySelector("form.sb-chat-form") ||
+      document.querySelector("form[data-sb-chat-form]") ||
+      document.querySelector("form[action*=\"/chat/\"]");
+
+    if (!chatFormEl) return;
+
+    const chatInputEl =
+      document.getElementById("chat-input") ||
+      chatFormEl.querySelector("#chat-input") ||
+      chatFormEl.querySelector("input[name=\"text\"]") ||
+      chatFormEl.querySelector("textarea[name=\"text\"]") ||
+      chatFormEl.querySelector("input[name=\"message\"]") ||
+      chatFormEl.querySelector("textarea[name=\"message\"]");
+
+    if (!chatInputEl) return;
+
+    // Force-clear any restored value on load
+    chatInputEl.value = "";
+    chatInputEl.setAttribute("value", "");
+    chatInputEl.dispatchEvent(new Event("input", { bubbles: true }));
+
+    // Clear immediately on submit (without preventing normal submit/redirect)
+    chatFormEl.addEventListener("submit", function () {
+      // Clear now + after current tick (covers Safari/Chrome restore quirks)
+      chatInputEl.value = "";
+      chatInputEl.setAttribute("value", "");
+      chatInputEl.dispatchEvent(new Event("input", { bubbles: true }));
+
+      // Keep focus in the input (otherwise button click steals focus)
+      try {
+        chatInputEl.focus({ preventScroll: true });
+      } catch (_) {
+        chatInputEl.focus();
+      }
+
+      setTimeout(() => {
+        chatInputEl.value = "";
+        chatInputEl.setAttribute("value", "");
+        chatInputEl.dispatchEvent(new Event("input", { bubbles: true }));
+
+        try {
+          chatInputEl.focus({ preventScroll: true });
+        } catch (_) {
+          chatInputEl.focus();
+        }
+      }, 0);
+    });
+  }
+
+  sbWireChatInputClear();
+
   // === StudyBuddy AI Assistant toggle & chat ===
   const aiWidget = document.getElementById("ai-widget");
   const aiBubble = document.getElementById("ai-bubble"); // floating messenger-style bubble
@@ -108,6 +165,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const aiForm = document.getElementById("ai-form");
   const aiInput = document.getElementById("ai-input");
   const aiMessages = document.getElementById("ai-messages");
+
+  // Single source of truth for widget visibility
+  let aiIsOpen = false;
+
+  // Ensure the widget never appears by CSS/layout alone
+  if (aiWidget) {
+    // If markup forgot the class, force closed on load
+    aiWidget.classList.add("is-hidden");
+  }
 
   if (aiWidget && aiMessages && aiInput && aiForm) {
     function isNearBottom(el, px = 48) {
@@ -142,26 +208,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function showAiWidget() {
-  aiWidget.classList.remove("is-hidden");
-  requestAnimationFrame(() => {
-    scrollMessagesToBottom(true);
-    aiInput.focus();
-  });
-}
+      aiIsOpen = true;
+      aiWidget.classList.remove("is-hidden");
+      requestAnimationFrame(() => {
+        scrollMessagesToBottom(true);
+        aiInput.focus();
+      });
+    }
 
-function hideAiWidget() {
-  aiWidget.classList.add("is-hidden");
-}
-
-
-
+    function hideAiWidget() {
+      aiIsOpen = false;
+      aiWidget.classList.add("is-hidden");
+    }
 
     // Bubble toggles the widget
     if (aiBubble) {
       aiBubble.addEventListener("click", function (e) {
         e.preventDefault();
-        const hidden = (aiWidget.style.display === "none") || (getComputedStyle(aiWidget).display === "none");
-        if (hidden) showAiWidget(); else hideAiWidget();
+        if (aiIsOpen) hideAiWidget();
+        else showAiWidget();
       });
     }
 
@@ -188,11 +253,20 @@ function hideAiWidget() {
     // Send question to AI
     aiForm.addEventListener("submit", function (e) {
       e.preventDefault();
-      const text = (aiInput.value || "").trim();
+
+      const text = aiInput.value.trim();
       if (!text) return;
 
-      aiInput.value = "";
       appendAiMessage("me", text);
+
+      // Clear the input reliably (works across browsers, avoids value sticking)
+      aiInput.value = "";
+      aiInput.setAttribute("value", "");
+      if (aiForm && typeof aiForm.reset === "function") aiForm.reset();
+      // Notify any listeners / ensure UI updates
+      aiInput.dispatchEvent(new Event("input", { bubbles: true }));
+      aiInput.dispatchEvent(new Event("change", { bubbles: true }));
+      requestAnimationFrame(() => aiInput.focus());
 
       fetch("/ai/chat", {
         method: "POST",
@@ -211,6 +285,22 @@ function hideAiWidget() {
     // Mobile: prevent weird jumps; keep messages pinned only if already near bottom
     aiInput.addEventListener("focus", function () {
       requestAnimationFrame(() => scrollMessagesToBottom(false));
+    });
+
+    // Hard guard: prevent auto-open on resize/fullscreen/layout shifts
+    const sbEnforceAiClosedIfNeeded = () => {
+      if (!aiIsOpen) aiWidget.classList.add("is-hidden");
+    };
+
+    window.addEventListener("resize", () => {
+      // Run after layout settles
+      requestAnimationFrame(sbEnforceAiClosedIfNeeded);
+      setTimeout(sbEnforceAiClosedIfNeeded, 80);
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+      requestAnimationFrame(sbEnforceAiClosedIfNeeded);
+      setTimeout(sbEnforceAiClosedIfNeeded, 80);
     });
   }
 });

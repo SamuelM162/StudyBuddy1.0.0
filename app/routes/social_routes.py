@@ -50,10 +50,8 @@ def _get_id_token():
     return token or None
 
 def get_all_users():
-    token = _get_id_token()
-    if not token:
-        return {}
-    return db.child("users").get(token=token).val() or {}
+    """Return all user profiles from /users (Admin SDK, no token needed)."""
+    return db.child("users").get().val() or {}
 
 def _normalize_interests(raw):
     """Convert whatever is stored as interests into a set of lowercase strings.
@@ -105,17 +103,13 @@ def _normalize_interests(raw):
 @social_bp.route("/search")
 @login_required
 def search_users():
-    token = _get_id_token()
-    if not token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
     q = request.args.get("q", "").lower()
     current_uid = session["user_id"]
-    friends = db.child("friends").child(current_uid).get(token=token).val() or {}
+    friends = db.child("friends").child(current_uid).get().val() or {}
     friend_ids = set(friends.keys())
 
-    sent = db.child("friend_requests").child(current_uid).child("sent").get(token=token).val() or {}
-    received = db.child("friend_requests").child(current_uid).child("received").get(token=token).val() or {}
+    sent = db.child("friend_requests").child(current_uid).child("sent").get().val() or {}
+    received = db.child("friend_requests").child(current_uid).child("received").get().val() or {}
     pending_ids = set(sent.keys()) | set(received.keys())
 
     users = get_all_users()
@@ -142,22 +136,17 @@ def search_users():
 @social_bp.route("/suggestions")
 @login_required
 def suggestions():
-    token = _get_id_token()
-    if not token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
     current_uid = session["user_id"]
-    current_profile = db.child("users").child(current_uid).get(token=token).val() or {}
+    current_profile = db.child("users").child(current_uid).get().val() or {}
 
     # Try to extract study interests/subjects from the current profile
     current_interests = _extract_profile_interests(current_profile)
-    print("[DEBUG] current_interests:", current_interests)
 
-    friends = db.child("friends").child(current_uid).get(token=token).val() or {}
+    friends = db.child("friends").child(current_uid).get().val() or {}
     friend_ids = set(friends.keys())
 
-    sent = db.child("friend_requests").child(current_uid).child("sent").get(token=token).val() or {}
-    received = db.child("friend_requests").child(current_uid).child("received").get(token=token).val() or {}
+    sent = db.child("friend_requests").child(current_uid).child("sent").get().val() or {}
+    received = db.child("friend_requests").child(current_uid).child("received").get().val() or {}
     pending_ids = set(sent.keys()) | set(received.keys())
 
     users = get_all_users()
@@ -171,7 +160,6 @@ def suggestions():
         # For other users, also support multiple possible keys / flexible extraction
         other_interests = _extract_profile_interests(u)
         shared = current_interests & other_interests
-        print("[DEBUG] user", uid, "interests:", other_interests, "shared:", shared)
         if shared:
             suggestions_list.append({
                 "uid": uid,
@@ -188,17 +176,13 @@ def suggestions():
 @social_bp.route("/friends")
 @login_required
 def friends_list():
-    token = _get_id_token()
-    if not token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
     current_uid = session["user_id"]
 
     # všetci používatelia (profily)
     users = get_all_users() or {}
 
     # zoznam priateľov
-    friends_raw = db.child("friends").child(current_uid).get(token=token).val() or {}
+    friends_raw = db.child("friends").child(current_uid).get().val() or {}
     friend_objs = []
     for fid in friends_raw.keys():
         u = users.get(fid) or {}
@@ -211,8 +195,8 @@ def friends_list():
             })
 
     # friend requests (prijaté / odoslané)
-    received_raw = db.child("friend_requests").child(current_uid).child("received").get(token=token).val() or {}
-    sent_raw = db.child("friend_requests").child(current_uid).child("sent").get(token=token).val() or {}
+    received_raw = db.child("friend_requests").child(current_uid).child("received").get().val() or {}
+    sent_raw = db.child("friend_requests").child(current_uid).child("sent").get().val() or {}
 
     received_requests = []
     for from_uid in received_raw.keys():
@@ -240,16 +224,12 @@ def friends_list():
 @social_bp.route("/block/<uid>")
 @login_required
 def block_user(uid):
-    token = _get_id_token()
-    if not token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
     current_uid = session["user_id"]
     if uid == current_uid:
         return redirect(url_for("social.friends_list"))
 
     # mark that current user blocks this uid
-    db.child("blocks").child(current_uid).child(uid).set(True, token=token)
+    db.child("blocks").child(current_uid).child(uid).set(True)
     flash("User has been blocked. They will no longer be able to message you.", "info")
     return redirect(url_for("social.friends_list"))
 
@@ -257,48 +237,36 @@ def block_user(uid):
 @social_bp.route("/unblock/<uid>")
 @login_required
 def unblock_user(uid):
-    token = _get_id_token()
-    if not token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
     current_uid = session["user_id"]
     if uid == current_uid:
         return redirect(url_for("social.friends_list"))
 
-    db.child("blocks").child(current_uid).child(uid).remove(token=token)
+    db.child("blocks").child(current_uid).child(uid).remove()
     flash("User has been unblocked.", "info")
     return redirect(url_for("social.friends_list"))
 
 @social_bp.route("/request/<target_uid>")
 @login_required
 def send_request(target_uid):
-    token = _get_id_token()
-    if not token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
     current_uid = session["user_id"]
     if target_uid == current_uid:
         return redirect(url_for("social.friends_list"))
 
-    db.child("friend_requests").child(current_uid).child("sent").child(target_uid).set(True, token=token)
-    db.child("friend_requests").child(target_uid).child("received").child(current_uid).set(True, token=token)
+    db.child("friend_requests").child(current_uid).child("sent").child(target_uid).set(True)
+    db.child("friend_requests").child(target_uid).child("received").child(current_uid).set(True)
     flash("Friend request sent.", "success")
     return redirect(url_for("social.friends_list"))
 
 @social_bp.route("/accept/<from_uid>")
 @login_required
 def accept_request(from_uid):
-    token = _get_id_token()
-    if not token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
     current_uid = session["user_id"]
 
-    db.child("friends").child(current_uid).child(from_uid).set(True, token=token)
-    db.child("friends").child(from_uid).child(current_uid).set(True, token=token)
+    db.child("friends").child(current_uid).child(from_uid).set(True)
+    db.child("friends").child(from_uid).child(current_uid).set(True)
 
-    db.child("friend_requests").child(current_uid).child("received").child(from_uid).remove(token=token)
-    db.child("friend_requests").child(from_uid).child("sent").child(current_uid).remove(token=token)
+    db.child("friend_requests").child(current_uid).child("received").child(from_uid).remove()
+    db.child("friend_requests").child(from_uid).child("sent").child(current_uid).remove()
 
     flash("Friend request accepted.", "success")
     return redirect(url_for("social.friends_list"))
@@ -306,12 +274,8 @@ def accept_request(from_uid):
 @social_bp.route("/decline/<from_uid>")
 @login_required
 def decline_request(from_uid):
-    token = _get_id_token()
-    if not token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
     current_uid = session["user_id"]
-    db.child("friend_requests").child(current_uid).child("received").child(from_uid).remove(token=token)
-    db.child("friend_requests").child(from_uid).child("sent").child(current_uid).remove(token=token)
+    db.child("friend_requests").child(current_uid).child("received").child(from_uid).remove()
+    db.child("friend_requests").child(from_uid).child("sent").child(current_uid).remove()
     flash("Friend request declined.", "info")
     return redirect(url_for("social.friends_list"))

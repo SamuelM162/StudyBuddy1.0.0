@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from app.firebase_app import auth, db, rtdb_patch
+from app.firebase_app import auth, db
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -19,21 +19,15 @@ def signup():
         uid = user["localId"]
         session["user_id"] = uid
         session["email"] = email
-        session["id_token"] = user.get("idToken")
-        session["idToken"] = session.get("id_token")
 
-        rtdb_patch(
-            f"users/{uid}",
-            {
-                "email": email,
-                "display_name": display_name if display_name else email,
-                "faculty": "",
-                "bio": "",
-                "interests": [],
-                "is_tutor": False
-            },
-            id_token=session.get("id_token")
-        )
+        db.child("users").child(uid).set({
+            "email": email,
+            "display_name": display_name if display_name else email,
+            "faculty": "",
+            "bio": "",
+            "interests": [],
+            "is_tutor": False
+        })
 
         flash("Account created. Welcome to StudyBuddy!", "success")
         return redirect(url_for("main.dashboard"))
@@ -56,25 +50,19 @@ def login():
         uid = user["localId"]
         session["user_id"] = uid
         session["email"] = email
-        session["id_token"] = user.get("idToken")
-        session["idToken"] = session.get("id_token")
 
         user_ref = db.child("users").child(uid)
-        existing = user_ref.get(token=session.get("id_token")).val()
+        existing = user_ref.get().val()
 
         if not existing:
-            rtdb_patch(
-                f"users/{uid}",
-                {
-                    "email": email,
-                    "display_name": email,
-                    "faculty": "",
-                    "bio": "",
-                    "interests": [],
-                    "is_tutor": False
-                },
-                id_token=session.get("id_token")
-            )
+            user_ref.set({
+                "email": email,
+                "display_name": email,
+                "faculty": "",
+                "bio": "",
+                "interests": [],
+                "is_tutor": False
+            })
 
         flash("Logged in successfully.", "success")
         return redirect(url_for("main.dashboard"))

@@ -47,9 +47,9 @@
           <span class="status delivered">Delivered ✓</span>
         {% endif %}
       </div>
-      <form method="post">
+      <form method="post" id="chat-form">
         <div class="input-group">
-          <input type="text" name="text" class="form-control" placeholder="Type a message..." required>
+          <input id="chat-input" type="text" name="text" class="form-control" placeholder="Type a message..." required autocomplete="off" autocapitalize="off" spellcheck="false">
           <button type="submit" class="btn sb-btn-primary">Send</button>
         </div>
       </form>
@@ -65,8 +65,54 @@
   // last rendered status (Seen/Delivered), so we can restore it after typing ends
   let lastStatusHtml = statusEl ? statusEl.innerHTML : '';
   let isOtherTyping = false;
-  const input = document.querySelector('form textarea[name="text"], form input[name="text"]');
-  const form = input ? input.closest('form') : null;
+  const form = document.getElementById('chat-form');
+  let input = document.getElementById('chat-input');
+
+  function bindInputDraftListeners(el){
+    if(!el) return;
+
+    // When user types OR even just sits with a draft in the input, show typing.
+    el.addEventListener('input', () => updateTypingFromDraft(true));
+    el.addEventListener('focus', () => updateTypingFromDraft(true));
+    // Don't immediately clear typing on blur if draft exists (user is still in the chat page)
+    el.addEventListener('blur', () => updateTypingFromDraft(true));
+  }
+
+  function hardClearChatInput(){
+    if(!input) return;
+
+    // Try normal clear first
+    input.value = '';
+    input.defaultValue = '';
+    input.setAttribute('value','');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+
+    // Some browsers (esp. Safari / mobile) can visually keep the last value.
+    // If it still looks "stuck", replace the node with a fresh clone.
+    if (input.value && String(input.value).trim().length > 0){
+      const clone = input.cloneNode(true);
+      input.parentNode.replaceChild(clone, input);
+      input = clone;
+      bindInputDraftListeners(input);
+    }
+
+    requestAnimationFrame(() => { if(input) input.focus(); });
+
+    // Some browsers re-apply the previous value right after we clear.
+    // Force-clear again on a few ticks.
+    const force = () => {
+      if(!input) return;
+      input.value = '';
+      input.defaultValue = '';
+      input.setAttribute('value','');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    setTimeout(force, 0);
+    setTimeout(force, 50);
+    setTimeout(force, 150);
+  }
 
   function getScroller(){
     const chatThread = document.getElementById('chat-thread');
@@ -129,17 +175,7 @@
   }
 
   if(input){
-    // When user types OR even just sits with a draft in the input, show typing.
-    input.addEventListener('input', () => {
-      updateTypingFromDraft(true);
-    });
-    input.addEventListener('focus', () => {
-      updateTypingFromDraft(true);
-    });
-    // Don't immediately clear typing on blur if draft exists (user is still in the chat page)
-    input.addEventListener('blur', () => {
-      updateTypingFromDraft(true);
-    });
+    bindInputDraftListeners(input);
   }
 
   // Keep typing state accurate even when user stops typing but draft text remains
@@ -158,16 +194,22 @@
     updateTypingFromDraft(false);
   }, 5000);
 
-  if(form){
+  if(form && input){
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       sendTyping(false);
 
       const text = (input && input.value) ? input.value.trim() : '';
-      if(!text) return;
+      if(!text){
+        // keep focus for quick typing
+        try{ input.focus({ preventScroll: true }); }catch(_){ input.focus(); }
+        return;
+      }
 
-      // clear input hneď (optimistic)
-      if(input) input.value = '';
+      // clear input immediately (hard clear)
+      hardClearChatInput();
+      // keep it visually empty
+      input.value = '';
       updateTypingFromDraft(true);
 
       try{
@@ -181,16 +223,28 @@
         });
 
         if(!r.ok){
-          // vráť text späť ak to zlyhá
-          if(input) input.value = text;
+          // restore draft if it fails
+          if(input){
+            input.value = text;
+            try{ input.focus({ preventScroll: true }); }catch(_){ input.focus(); }
+          }
           return;
         }
 
-        // dotiahni nové správy + udrž sa na spodku
+        // pull new messages + stay near bottom
         await pollThread();
+
+        // final safety clear + keep focus
+        if(input){
+          input.value = '';
+          try{ input.focus({ preventScroll: true }); }catch(_){ input.focus(); }
+        }
         scrollToBottom(true);
       }catch(err){
-        if(input) input.value = text;
+        if(input){
+          input.value = text;
+          try{ input.focus({ preventScroll: true }); }catch(_){ input.focus(); }
+        }
       }
     });
   }

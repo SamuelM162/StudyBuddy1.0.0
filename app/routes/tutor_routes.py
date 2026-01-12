@@ -4,22 +4,12 @@ from app.utils import login_required
 
 tutor_bp = Blueprint("tutor", __name__, url_prefix="/tutor")
 
-def _get_id_token():
-    token = session.get("id_token") or session.get("idToken")
-    if token is not None:
-        token = str(token).strip()
-    return token or None
-
 @tutor_bp.route("/offers")
 @login_required
 def offers_list():
     current_uid = session["user_id"]
-    token = _get_id_token()
-    if not token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
 
-    offers_data = db.child("tutor_offers").get(token=token).val() or {}
+    offers_data = db.child("tutor_offers").get().val() or {}
     offers = []
     for oid, o in offers_data.items():
         # NEzobrazuj moje vlastné ponuky v browse zozname
@@ -35,11 +25,6 @@ def offers_list():
 @tutor_bp.route("/offers/new", methods=["GET", "POST"])
 @login_required
 def new_offer():
-    token = _get_id_token()
-    if not token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
-
     if request.method == "POST":
         subject = request.form.get("subject")
         description = request.form.get("description")
@@ -54,7 +39,7 @@ def new_offer():
             "description": description,
             "rate": rate
         }
-        db.child("tutor_offers").push(data, token=token)
+        db.child("tutor_offers").push(data)
         flash("Tutoring offer created.", "success")
         return redirect(url_for("tutor.offers_list"))
 
@@ -63,12 +48,7 @@ def new_offer():
 @tutor_bp.route("/requests")
 @login_required
 def requests_list():
-    token = _get_id_token()
-    if not token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
-
-    req_data = db.child("tutor_requests").get(token=token).val() or {}
+    req_data = db.child("tutor_requests").get().val() or {}
     requests_list = []
     for rid, r in req_data.items():
         r["id"] = rid
@@ -78,11 +58,6 @@ def requests_list():
 @tutor_bp.route("/requests/new", methods=["GET", "POST"])
 @login_required
 def new_request():
-    token = _get_id_token()
-    if not token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
-
     if request.method == "POST":
         subject = request.form.get("subject")
         description = request.form.get("description")
@@ -97,7 +72,7 @@ def new_request():
             "description": description,
             "budget": budget
         }
-        db.child("tutor_requests").push(data, token=token)
+        db.child("tutor_requests").push(data)
         flash("Tutoring request created.", "success")
         return redirect(url_for("tutor.requests_list"))
 

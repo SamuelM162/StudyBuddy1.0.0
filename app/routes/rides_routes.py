@@ -5,30 +5,16 @@ from app.firebase_app import db
 rides_bp = Blueprint("rides", __name__, url_prefix="/rides")
 
 
-def _get_id_token():
-    token = session.get("id_token") or session.get("idToken")
-    if token is not None:
-        token = str(token).strip()
-    return token or None
-
-
 @rides_bp.route("/", methods=["GET"])
 @login_required
 def rides_list():
     """List all rides with seat info and flags for the current user."""
     uid = session["user_id"]
-    id_token = _get_id_token()
-    if not id_token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
 
     # all rides
-    rides_raw = db.child("rides").get(token=id_token).val() or {}
+    rides_raw = db.child("rides").get().val() or {}
     # passengers stored separately per ride
-    passengers_raw = db.child("ride_passengers").get(token=id_token).val() or {}
-
-    print("DEBUG rides_raw:", rides_raw)
-    print("DEBUG passengers_raw:", passengers_raw)
+    passengers_raw = db.child("ride_passengers").get().val() or {}
 
     rides = []
     for ride_id, ride in (rides_raw or {}).items():
@@ -72,10 +58,6 @@ def rides_list():
 def new_ride():
     """Create a new ride as the current user (driver)."""
     uid = session["user_id"]
-    id_token = _get_id_token()
-    if not id_token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
 
     if request.method == "POST":
         from_location = request.form.get("from_location", "").strip()
@@ -110,7 +92,7 @@ def new_ride():
             "status": "active",
         }
 
-        db.child("rides").push(ride_data, token=id_token)
+        db.child("rides").push(ride_data)
         flash("Ride created successfully.", "success")
         return redirect(url_for("rides.rides_list"))
 
@@ -122,12 +104,8 @@ def new_ride():
 def join_ride(ride_id):
     """Join a ride as a passenger."""
     uid = session["user_id"]
-    id_token = _get_id_token()
-    if not id_token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
 
-    ride = db.child("rides").child(ride_id).get(token=id_token).val() or {}
+    ride = db.child("rides").child(ride_id).get().val() or {}
     if not ride:
         flash("Ride not found.", "warning")
         return redirect(url_for("rides.rides_list"))
@@ -138,7 +116,7 @@ def join_ride(ride_id):
 
     seats_total = int(ride.get("seats_total", 0) or 0)
 
-    passengers = db.child("ride_passengers").child(ride_id).get(token=id_token).val() or {}
+    passengers = db.child("ride_passengers").child(ride_id).get().val() or {}
     if not isinstance(passengers, dict):
         passengers = {}
 
@@ -152,9 +130,8 @@ def join_ride(ride_id):
         flash("This ride is already full.", "warning")
         return redirect(url_for("rides.rides_list"))
 
-    db.child("ride_passengers").child(ride_id).child(uid).set(True, token=id_token)
+    db.child("ride_passengers").child(ride_id).child(uid).set(True)
 
-    print("DEBUG join_ride -> ride_passengers for", ride_id)
     flash("You joined this ride.", "success")
     return redirect(url_for("rides.rides_list"))
 
@@ -164,17 +141,13 @@ def join_ride(ride_id):
 def leave_ride(ride_id):
     """Leave a ride where the current user is a passenger."""
     uid = session["user_id"]
-    id_token = _get_id_token()
-    if not id_token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
 
-    ride = db.child("rides").child(ride_id).get(token=id_token).val() or {}
+    ride = db.child("rides").child(ride_id).get().val() or {}
     if not ride:
         flash("Ride not found.", "warning")
         return redirect(url_for("rides.rides_list"))
 
-    passengers = db.child("ride_passengers").child(ride_id).get(token=id_token).val() or {}
+    passengers = db.child("ride_passengers").child(ride_id).get().val() or {}
     if not isinstance(passengers, dict):
         passengers = {}
 
@@ -182,9 +155,8 @@ def leave_ride(ride_id):
         flash("You are not a passenger on this ride.", "info")
         return redirect(url_for("rides.rides_list"))
 
-    db.child("ride_passengers").child(ride_id).child(uid).remove(token=id_token)
+    db.child("ride_passengers").child(ride_id).child(uid).remove()
 
-    print("DEBUG leave_ride -> ride_passengers after", ride_id)
     flash("You left this ride.", "success")
     return redirect(url_for("rides.rides_list"))
 
@@ -194,14 +166,10 @@ def leave_ride(ride_id):
 def cancel_ride(ride_id):
     """Cancel (delete) a ride as the driver only."""
     uid = session["user_id"]
-    id_token = _get_id_token()
-    if not id_token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
 
     # always fetch specific ride only
     ride_ref = db.child("rides").child(ride_id)
-    ride = ride_ref.get(token=id_token).val()
+    ride = ride_ref.get().val()
 
     if not ride:
         flash("Ride not found.", "warning")
@@ -214,8 +182,8 @@ def cancel_ride(ride_id):
         return redirect(url_for("rides.rides_list"))
 
     # delete ONLY this ride + its passengers
-    db.child("rides").child(ride_id).remove(token=id_token)
-    db.child("ride_passengers").child(ride_id).remove(token=id_token)
+    db.child("rides").child(ride_id).remove()
+    db.child("ride_passengers").child(ride_id).remove()
 
     flash("Ride removed.", "info")
     return redirect(url_for("rides.rides_list"))

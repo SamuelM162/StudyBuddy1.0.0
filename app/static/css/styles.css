@@ -312,6 +312,12 @@ html[data-bs-theme='light'] .sb-message-other .sb-bubble {
   z-index: 1050;
 }
 
+/* AI widget hidden state (global, prevents auto-show on resize/layout changes) */
+.sb-ai-widget.is-hidden,
+#ai-widget.is-hidden {
+  display: none !important;
+}
+
 html[data-bs-theme='light'] .sb-ai-widget{
   background:#ffffff;
 }
@@ -503,15 +509,14 @@ html[data-bs-theme="light"] .sb-ai-bubble {
   box-shadow: 0 12px 28px rgba(0,0,0,0.3);
 }
 
-/* AI widget hidden state fix */
-#ai-widget[style*="display: none"] {
-  pointer-events: none;
-  opacity: 0;
-  transform: translateY(10px);
-}
-
+/* AI widget transitions (do not control visibility; visibility is controlled by .is-hidden) */
 #ai-widget {
   transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sb-ai-widget:not(.is-hidden) {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .sb-theme-toggle {
@@ -896,7 +901,11 @@ html[data-bs-theme='light'] .typing-indicator{
     text-decoration: none !important;
   }
 
-  .sb-ai-widget.is-hidden{
+}
+.sb-ai-widget.is-hidden{
   display: none;
 }
+/* === REMOVE AI WIDGET MAXIMIZE BUTTON (keep resize corner) === */
+.sb-ai-toggle-size {
+  display: none !important;
 }

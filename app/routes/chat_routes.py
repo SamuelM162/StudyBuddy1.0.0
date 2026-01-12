@@ -10,10 +10,10 @@ def make_thread_id(uid1, uid2):
     return "_".join(sorted([uid1, uid2]))
 
 
-def update_last_seen(uid: str, id_token: str | None = None):
+def update_last_seen(uid: str):
     """Uloží poslednú aktivitu používateľa pre online status."""
     try:
-        db.child("presence").child(uid).set({"last_seen": datetime.utcnow().isoformat()}, id_token)
+        db.child("presence").child(uid).set({"last_seen": datetime.utcnow().isoformat()})
     except Exception:
         # nechceme kvôli tomu zhodiť appku
         pass
@@ -23,13 +23,12 @@ def update_last_seen(uid: str, id_token: str | None = None):
 @login_required
 def inbox():
     uid = session["user_id"]
-    id_token = session.get("id_token")
-    update_last_seen(uid, id_token)
+    update_last_seen(uid)
 
     # user_threads/{uid}/{other_uid} -> {thread_id: "..."}
-    user_threads = db.child("user_threads").child(uid).get(id_token).val() or {}
-    users = db.child("users").get(id_token).val() or {}
-    presence = db.child("presence").get(id_token).val() or {}
+    user_threads = db.child("user_threads").child(uid).get().val() or {}
+    users = db.child("users").get().val() or {}
+    presence = db.child("presence").get().val() or {}
 
     threads = []
 
@@ -44,7 +43,7 @@ def inbox():
         other_name = user.get("display_name") or user.get("email") or other_uid
 
         # správy v threade
-        msgs_data = db.child("messages").child(thread_id).get(id_token).val() or {}
+        msgs_data = db.child("messages").child(thread_id).get().val() or {}
         msgs_list = list((msgs_data or {}).values())
         msgs_list.sort(key=lambda m: m.get("timestamp") or "")
 
@@ -54,7 +53,7 @@ def inbox():
         last_sender = last.get("sender_id")
 
         # unread count pre aktuálneho usera
-        last_read_ts = db.child("last_read").child(thread_id).child(uid).get(id_token).val()
+        last_read_ts = db.child("last_read").child(thread_id).child(uid).get().val()
         unread_count = 0
         if msgs_list:
             for m in msgs_list:
@@ -100,9 +99,14 @@ def inbox():
 def thread(other_uid):
     my_id = session["user_id"]
     my_email = session.get("email")
-    id_token = session.get("id_token")
-    update_last_seen(my_id, id_token)
+    update_last_seen(my_id)
     thread_id = make_thread_id(my_id, other_uid)
+
+    # Ensure thread appears in my inbox even if it was created by the other side earlier.
+    try:
+        db.child("user_threads").child(my_id).child(other_uid).set({"thread_id": thread_id})
+    except Exception:
+        pass
 
     if request.method == "POST":
         text = request.form.get("text")
@@ -113,21 +117,23 @@ def thread(other_uid):
                 "text": text,
                 "timestamp": datetime.utcnow().isoformat(),
             }
-            db.child("messages").child(thread_id).push(msg, id_token)
+            db.child("messages").child(thread_id).push(msg)
             # stop typing indicator for sender
             try:
-                db.child("typing").child(thread_id).child(my_id).set(None, id_token)
+                db.child("typing").child(thread_id).child(my_id).set(None)
             except Exception:
                 pass
-            db.child("user_threads").child(my_id).child(other_uid).set(
-                {"thread_id": thread_id}, id_token
-            )
-            db.child("user_threads").child(other_uid).child(my_id).set(
-                {"thread_id": thread_id}, id_token
-            )
+            # Only write under my own UID. Writing under other_uid will be denied by RTDB rules.
+            try:
+                db.child("user_threads").child(my_id).child(other_uid).set(
+                    {"thread_id": thread_id}
+                )
+            except Exception:
+                pass
+        return redirect(url_for("chat.thread", other_uid=other_uid))
 
     # načítaj správy
-    messages_data = db.child("messages").child(thread_id).get(id_token).val() or {}
+    messages_data = db.child("messages").child(thread_id).get().val() or {}
     messages = [m for _, m in messages_data.items()]
     messages.sort(key=lambda m: m.get("timestamp", ""))
 
@@ -136,14 +142,14 @@ def thread(other_uid):
         last_ts = messages[-1].get("timestamp") or datetime.utcnow().isoformat()
     else:
         last_ts = datetime.utcnow().isoformat()
-    db.child("last_read").child(thread_id).child(my_id).set(last_ts, id_token)
+    db.child("last_read").child(thread_id).child(my_id).set(last_ts)
 
     # last_read pre druhého účastníka – na "Seen" indikátor
-    last_read_data = db.child("last_read").child(thread_id).get(id_token).val() or {}
+    last_read_data = db.child("last_read").child(thread_id).get().val() or {}
     last_read_other = last_read_data.get(other_uid)
 
     # info o druhej strane
-    other_profile = db.child("users").child(other_uid).get(id_token).val() or {}
+    other_profile = db.child("users").child(other_uid).get().val() or {}
     other_name = (
         other_profile.get("display_name")
         or other_profile.get("email")
@@ -164,11 +170,10 @@ def thread(other_uid):
 @login_required
 def api_messages(other_uid):
     my_id = session["user_id"]
-    id_token = session.get("id_token")
-    update_last_seen(my_id, id_token)
+    update_last_seen(my_id)
     thread_id = make_thread_id(my_id, other_uid)
 
-    messages_data = db.child("messages").child(thread_id).get(id_token).val() or {}
+    messages_data = db.child("messages").child(thread_id).get().val() or {}
     messages = []
     for _, m in messages_data.items():
         messages.append(
@@ -183,7 +188,7 @@ def api_messages(other_uid):
     messages.sort(key=lambda m: m.get("timestamp") or "")
 
     # last_read pre druhého účastníka threadu – na "Seen" indikátor
-    last_read_data = db.child("last_read").child(thread_id).get(id_token).val() or {}
+    last_read_data = db.child("last_read").child(thread_id).get().val() or {}
     last_read_other = last_read_data.get(other_uid)
 
     return jsonify(
@@ -199,20 +204,19 @@ def api_messages(other_uid):
 @login_required
 def typing_status(other_uid):
     my_id = session["user_id"]
-    id_token = session.get("id_token")
     thread_id = make_thread_id(my_id, other_uid)
 
     if request.method == "POST":
         ts = datetime.utcnow().isoformat() if request.is_json and request.json.get("is_typing") else None
         try:
-            db.child("typing").child(thread_id).child(my_id).set(ts, id_token)
+            db.child("typing").child(thread_id).child(my_id).set(ts)
         except Exception:
             pass
         return jsonify({"ok": True})
 
     # GET – vrátime, či druhý user práve píše
     try:
-        ts = db.child("typing").child(thread_id).child(other_uid).get(id_token).val()
+        ts = db.child("typing").child(thread_id).child(other_uid).get().val()
         is_typing = False
         if ts:
             try:
@@ -231,13 +235,12 @@ def typing_status(other_uid):
 @login_required
 def delete_thread(other_uid):
     my_id = session["user_id"]
-    id_token = session.get("id_token")
     thread_id = make_thread_id(my_id, other_uid)
 
     # odstránime thread len z môjho inboxu (druhý user ho stále má)
     try:
-        db.child("user_threads").child(my_id).child(other_uid).remove(id_token)
-        db.child("last_read").child(thread_id).child(my_id).remove(id_token)
+        db.child("user_threads").child(my_id).child(other_uid).remove()
+        db.child("last_read").child(thread_id).child(my_id).remove()
     except Exception:
         pass
 

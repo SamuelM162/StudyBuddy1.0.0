@@ -1,17 +1,20 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify, session, current_app
 from app.utils import login_required
 from groq import Groq
 
 ai_bp = Blueprint("ai", __name__, url_prefix="/ai")
 
-# IMPORTANT: Insert your Groq API key here
-GROQ_API_KEY = "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"
 
-client = Groq(api_key=GROQ_API_KEY)
+def get_groq_client():
+    api_key = current_app.config.get("GROQ_API_KEY")
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY is not configured")
+    return Groq(api_key=api_key)
 
 
 def generate_ai_reply(message: str) -> str:
     """Real AI using LLaMA‑3‑70B via Groq."""
+    client = get_groq_client()
     system_prompt = (
         "You are StudyBuddy AI, a friendly assistant that helps students with learning, "
         "explaining topics, exam preparation, motivation, time management, and university tasks. "

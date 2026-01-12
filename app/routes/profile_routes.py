@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash
-from app.firebase_app import db, rtdb_patch
+from app.firebase_app import db
 from app.utils import login_required
 
 profile_bp = Blueprint("profile", __name__, url_prefix="/profile")
@@ -16,14 +16,19 @@ def edit_profile():
         flash("Session expired. Please log in again.", "warning")
         return redirect(url_for("auth.login"))
 
-    id_token = (session.get("id_token") or session.get("idToken") or "").strip() or None
-    if not id_token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
+    user_ref = db.child("users").child(uid)
+    current = user_ref.get().val() or {}
 
-    user_ref = db.child(f"users/{uid}")
-
-    current = user_ref.get(token=id_token).val() or {}
+    if not current:
+        user_ref.set({
+            "email": email,
+            "display_name": email,
+            "faculty": "",
+            "bio": "",
+            "interests": [],
+            "is_tutor": False,
+        })
+        current = user_ref.get().val() or {}
 
     if request.method == "POST":
         display_name = request.form.get("display_name", "").strip()
@@ -49,7 +54,7 @@ def edit_profile():
             update_data["interests"] = interests
 
         # uložíme len aktualizované polia pod /users/<uid>
-        rtdb_patch(f"users/{uid}", update_data, id_token=id_token)
+        user_ref.update(update_data)
 
         flash("Profile updated.", "success")
         return redirect(url_for("profile.view_profile", uid=uid))
@@ -68,12 +73,11 @@ def edit_profile():
 @profile_bp.route("/view/<uid>")
 @login_required
 def view_profile(uid):
-    id_token = (session.get("id_token") or session.get("idToken") or "").strip() or None
-    if not id_token:
-        flash("Session expired. Please log in again.", "warning")
-        return redirect(url_for("auth.login"))
-
-    profile = db.child("users").child(uid).get(token=id_token).val()
+    uid = (uid or "").strip()
+    if (not uid) or uid == "/" or "/" in uid:
+        flash("User not found.", "warning")
+        return redirect(url_for("main.dashboard"))
+    profile = db.child("users").child(uid).get().val()
     if not profile:
         flash("User not found.", "warning")
         return redirect(url_for("main.dashboard"))
