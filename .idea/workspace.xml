@@ -4,12 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="860eddd1-5308-4495-89eb-e6ba8871e2da" name="Changes" comment="Functionality updates">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/routes/ai_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/routes/ai_routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/studybuddyismai-firebase-adminsdk-fbsvc-73c23ec017.json" beforeDir="false" afterPath="$PROJECT_DIR$/app/studybuddyismai-firebase-adminsdk-fbsvc-73c23ec017.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
+    <list default="true" id="860eddd1-5308-4495-89eb-e6ba8871e2da" name="Changes" comment="Hidden Key">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/empty.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/studybuddyismai-firebase-adminsdk-fbsvc-73c23ec017.json" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -133,7 +131,7 @@
       <workItem from="1768295123679" duration="734000" />
       <workItem from="1768304993193" duration="5836000" />
       <workItem from="1768336544187" duration="550000" />
-      <workItem from="1768337278061" duration="390000" />
+      <workItem from="1768337278061" duration="1160000" />
     </task>
     <task id="LOCAL-00001" summary="Security Updates">
       <option name="closed" value="true" />
@@ -183,7 +181,15 @@
       <option name="project" value="LOCAL" />
       <updated>1768333366594</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Hidden Key">
+      <option name="closed" value="true" />
+      <created>1768337735248</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1768337735248</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -192,7 +198,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Security Updates" />
     <MESSAGE value="Functionality updates" />
-    <option name="LAST_COMMIT_MESSAGE" value="Functionality updates" />
+    <MESSAGE value="Hidden Key" />
+    <option name="LAST_COMMIT_MESSAGE" value="Hidden Key" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/StudyBuddyTESTING$run.coverage" NAME="run Coverage Results" MODIFIED="1768337611118" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
