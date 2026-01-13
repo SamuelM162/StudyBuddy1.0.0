@@ -6,6 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="860eddd1-5308-4495-89eb-e6ba8871e2da" name="Changes" comment="Functionality updates">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/run.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -127,7 +129,7 @@
       <workItem from="1768254262043" duration="39000" />
       <workItem from="1768262466504" duration="7525000" />
       <workItem from="1768295123679" duration="734000" />
-      <workItem from="1768304993193" duration="1931000" />
+      <workItem from="1768304993193" duration="3021000" />
     </task>
     <task id="LOCAL-00001" summary="Security Updates">
       <option name="closed" value="true" />
@@ -161,7 +163,15 @@
       <option name="project" value="LOCAL" />
       <updated>1768295135522</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Functionality updates">
+      <option name="closed" value="true" />
+      <created>1768331530793</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1768331530793</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -173,6 +183,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="Functionality updates" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/StudyBuddyISMAI$run.coverage" NAME="run Coverage Results" MODIFIED="1768304993827" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/StudyBuddyISMAI$run.coverage" NAME="run Coverage Results" MODIFIED="1768331916351" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

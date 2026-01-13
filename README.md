@@ -19,7 +19,7 @@ source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Edit `app/config.py` and put your real Firebase config (you already have it).  
+Edit `app/config.py` and put your real Firebase config and Firebase Admin SDK to `app\studybuddyismai-firebase-adminsdk-fbsvc-73c23ec017.json.`  
 Then:
 
 ```bash
