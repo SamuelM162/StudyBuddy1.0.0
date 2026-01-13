@@ -8,17 +8,33 @@ rides_bp = Blueprint("rides", __name__, url_prefix="/rides")
 @rides_bp.route("/", methods=["GET"])
 @login_required
 def rides_list():
-    """List all rides with seat info and flags for the current user."""
-    uid = session["user_id"]
+    """List rides with seat info and flags for the current user.
 
-    # all rides
+    Supports:
+      - /rides/           -> all rides
+      - /rides/?mine=1    -> only my rides (driver_id == current user)
+    """
+    uid = session.get("user_id")
+    if not uid:
+        flash("Session expired. Please log in again.", "warning")
+        return redirect(url_for("auth.login"))
+
     rides_raw = db.child("rides").get().val() or {}
-    # passengers stored separately per ride
     passengers_raw = db.child("ride_passengers").get().val() or {}
+
+    if not isinstance(rides_raw, dict):
+        rides_raw = {}
+    if not isinstance(passengers_raw, dict):
+        passengers_raw = {}
+
+    mine = request.args.get("mine") in ("1", "true", "yes", "on")
 
     rides = []
     for ride_id, ride in (rides_raw or {}).items():
         if not ride:
+            continue
+
+        if mine and ride.get("driver_id") != uid:
             continue
 
         ride_passengers = passengers_raw.get(ride_id) or {}
@@ -50,14 +66,17 @@ def rides_list():
             "is_full": is_full,
         })
 
-    return render_template("rides_list.html", rides=rides)
+    return render_template("rides_list.html", rides=rides, mine=mine)
 
 
 @rides_bp.route("/new", methods=["GET", "POST"])
 @login_required
 def new_ride():
     """Create a new ride as the current user (driver)."""
-    uid = session["user_id"]
+    uid = session.get("user_id")
+    if not uid:
+        flash("Session expired. Please log in again.", "warning")
+        return redirect(url_for("auth.login"))
 
     if request.method == "POST":
         from_location = request.form.get("from_location", "").strip()
@@ -79,14 +98,14 @@ def new_ride():
                 flash(e, "danger")
             return redirect(url_for("rides.new_ride"))
 
-        seats_total = int(seats_total)
+        seats_total_i = int(seats_total)
 
         ride_data = {
             "driver_id": uid,
             "from_location": from_location,
             "to_location": to_location,
             "departure_time": departure_time,
-            "seats_total": seats_total,
+            "seats_total": seats_total_i,
             "contribution": contribution,
             "notes": notes,
             "status": "active",
@@ -103,7 +122,10 @@ def new_ride():
 @login_required
 def join_ride(ride_id):
     """Join a ride as a passenger."""
-    uid = session["user_id"]
+    uid = session.get("user_id")
+    if not uid:
+        flash("Session expired. Please log in again.", "warning")
+        return redirect(url_for("auth.login"))
 
     ride = db.child("rides").child(ride_id).get().val() or {}
     if not ride:
@@ -131,7 +153,6 @@ def join_ride(ride_id):
         return redirect(url_for("rides.rides_list"))
 
     db.child("ride_passengers").child(ride_id).child(uid).set(True)
-
     flash("You joined this ride.", "success")
     return redirect(url_for("rides.rides_list"))
 
@@ -140,7 +161,10 @@ def join_ride(ride_id):
 @login_required
 def leave_ride(ride_id):
     """Leave a ride where the current user is a passenger."""
-    uid = session["user_id"]
+    uid = session.get("user_id")
+    if not uid:
+        flash("Session expired. Please log in again.", "warning")
+        return redirect(url_for("auth.login"))
 
     ride = db.child("rides").child(ride_id).get().val() or {}
     if not ride:
@@ -156,7 +180,6 @@ def leave_ride(ride_id):
         return redirect(url_for("rides.rides_list"))
 
     db.child("ride_passengers").child(ride_id).child(uid).remove()
-
     flash("You left this ride.", "success")
     return redirect(url_for("rides.rides_list"))
 
@@ -165,9 +188,11 @@ def leave_ride(ride_id):
 @login_required
 def cancel_ride(ride_id):
     """Cancel (delete) a ride as the driver only."""
-    uid = session["user_id"]
+    uid = session.get("user_id")
+    if not uid:
+        flash("Session expired. Please log in again.", "warning")
+        return redirect(url_for("auth.login"))
 
-    # always fetch specific ride only
     ride_ref = db.child("rides").child(ride_id)
     ride = ride_ref.get().val()
 
@@ -175,13 +200,11 @@ def cancel_ride(ride_id):
         flash("Ride not found.", "warning")
         return redirect(url_for("rides.rides_list"))
 
-    # strict validation – must match driver exactly
     driver_id = ride.get("driver_id")
     if driver_id is None or driver_id != uid:
         flash("You can only cancel your own ride.", "danger")
         return redirect(url_for("rides.rides_list"))
 
-    # delete ONLY this ride + its passengers
     db.child("rides").child(ride_id).remove()
     db.child("ride_passengers").child(ride_id).remove()
 

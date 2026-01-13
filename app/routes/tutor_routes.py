@@ -22,6 +22,24 @@ def offers_list():
 
     return render_template("tutor_offers.html", offers=offers)
 
+@tutor_bp.route("/offers/mine")
+@login_required
+def my_offers():
+    current_uid = session["user_id"]
+
+    offers_data = db.child("tutor_offers").get().val() or {}
+    my_offers = []
+
+    for oid, o in offers_data.items():
+        if o.get("owner_id") != current_uid:
+            continue
+
+        o = o.copy()
+        o["id"] = oid
+        my_offers.append(o)
+
+    return render_template("tutor_offers.html", offers=my_offers, my_view=True)
+
 @tutor_bp.route("/offers/new", methods=["GET", "POST"])
 @login_required
 def new_offer():
@@ -77,3 +95,21 @@ def new_request():
         return redirect(url_for("tutor.requests_list"))
 
     return render_template("tutor_request_new.html")
+
+@tutor_bp.route("/offers/delete/<offer_id>", methods=["POST"])
+@login_required
+def delete_offer(offer_id):
+    current_uid = session["user_id"]
+
+    offer = db.child("tutor_offers").child(offer_id).get().val()
+    if not offer:
+        flash("Offer not found.", "error")
+        return redirect(url_for("tutor.my_offers"))
+
+    if offer.get("owner_id") != current_uid:
+        flash("You are not allowed to delete this offer.", "error")
+        return redirect(url_for("tutor.my_offers"))
+
+    db.child("tutor_offers").child(offer_id).remove()
+    flash("Offer deleted.", "success")
+    return redirect(url_for("tutor.my_offers"))

@@ -167,6 +167,8 @@ def thread(other_uid):
         other_name=other_name,
         current_user_id=my_id,
         last_read_other=last_read_other,
+        blocked_me=bool(blocked_me),
+        i_blocked=bool(i_blocked),
     )
 
 

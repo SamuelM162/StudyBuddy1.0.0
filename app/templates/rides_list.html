@@ -7,6 +7,16 @@
       <p class="text-muted">
         Find or offer rides with other students.
       </p>
+      <div class="d-flex gap-2 mb-3">
+        <a href="{{ url_for('rides.rides_list') }}"
+           class="btn btn-sm {{ 'sb-btn-primary' if not mine else 'sb-btn-outline' }}">
+          All rides
+        </a>
+        <a href="{{ url_for('rides.rides_list', mine=1) }}"
+           class="btn btn-sm {{ 'sb-btn-primary' if mine else 'sb-btn-outline' }}">
+          My rides
+        </a>
+      </div>
 
       {% if rides %}
         <ul class="list-group list-group-flush">
@@ -63,10 +73,12 @@
 
                 <!-- Action buttons row -->
                 <div class="d-flex flex-column align-items-end">
-                  <a href="{{ url_for('chat.thread', other_uid=r.driver_id) }}"
-                     class="btn btn-sm sb-btn-outline mb-1">
-                    Message driver
-                  </a>
+                  {% if not r.is_driver %}
+                    <a href="{{ url_for('chat.thread', other_uid=r.driver_id) }}"
+                       class="btn btn-sm sb-btn-outline mb-1">
+                      Message driver
+                    </a>
+                  {% endif %}
 
                   {% if r.is_driver %}
                     <form method="post"

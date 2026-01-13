@@ -3,13 +3,25 @@
 <div class="row mt-3 justify-content-center">
   <div class="col-lg-7">
     <div class="sb-card p-4">
-      <div class="d-flex align-items-center mb-3">
-        <div class="sb-avatar me-3">
-          {{ (other_name or other_uid)[0]|upper }}
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center">
+          <div class="sb-avatar me-3">
+            {{ (other_name or other_uid)[0]|upper }}
+          </div>
+          <div>
+            <div class="fw-semibold">{{ other_name }}</div>
+            <div class="small text-muted">Chat</div>
+          </div>
         </div>
-        <div>
-          <div class="fw-semibold">{{ other_name }}</div>
-          <div class="small text-muted">Chat</div>
+
+        <div class="d-flex align-items-center gap-2">
+          <button
+            type="button"
+            class="btn sb-btn-secondary sb-block-btn {% if i_blocked %}is-blocked{% endif %}"
+            data-uid="{{ other_uid }}"
+            aria-pressed="{% if i_blocked %}true{% else %}false{% endif %}">
+            {% if i_blocked %}Unblock{% else %}Block{% endif %}
+          </button>
         </div>
       </div>
       <div class="sb-chat-box mb-3" id="chat-thread" data-other-uid="{{ other_uid }}">
@@ -61,6 +73,63 @@
   const otherUid = {{ other_uid|tojson }};
   const otherName = {{ other_name|tojson }};
   const statusEl = document.getElementById('msg-status');
+
+  // Keep Block/Unblock label correct after navigation/back/tab switching.
+  // Server-side render may be stale; this refreshes state from RTDB.
+  async function refreshBlockButton(){
+    const btn = document.querySelector('.sb-block-btn');
+    if(!btn) return;
+    try{
+      const r = await fetch(`/social/api/is_blocked/${encodeURIComponent(otherUid)}?_=${Date.now()}`, {
+        method: 'GET',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        cache: 'no-store',
+        credentials: 'same-origin'
+      });
+      if(!r.ok) return;
+      const j = await r.json();
+      if(!j || j.ok !== true || typeof j.blocked !== 'boolean') return;
+
+      if(j.blocked){
+        btn.classList.add('is-blocked');
+        btn.textContent = 'Unblock';
+        btn.setAttribute('aria-pressed','true');
+      }else{
+        btn.classList.remove('is-blocked');
+        btn.textContent = 'Block';
+        btn.setAttribute('aria-pressed','false');
+      }
+    }catch(e){}
+  }
+  // Always refresh block button status on dom load
+  document.addEventListener('DOMContentLoaded', refreshBlockButton);
+  // Add global event handler for block/unblock button
+  const blockBtn = document.querySelector('.sb-block-btn');
+  if(blockBtn){
+    blockBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const uid = blockBtn.dataset.uid;
+      const r = await fetch(`/social/api/block/${uid}`, { method: 'POST' });
+      if(r.ok){
+        refreshBlockButton();
+      }
+    });
+  }
+  // Re-sync after tab switching / BFCache restore / returning to this page
+  window.addEventListener('pageshow', () => {
+    // pageshow also fires when coming back from browser back-forward cache
+    refreshBlockButton();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      refreshBlockButton();
+    }
+  });
+
+  window.addEventListener('focus', () => {
+    refreshBlockButton();
+  });
 
   // last rendered status (Seen/Delivered), so we can restore it after typing ends
   let lastStatusHtml = statusEl ? statusEl.innerHTML : '';
@@ -406,6 +475,7 @@ ${mine ? 'You' : escapeHtml(m.sender_email || '')}
   }
 
   // Start at bottom when opening the thread
+  refreshBlockButton();
   scrollToBottom(true);
 
   setInterval(pollTyping, 1000);

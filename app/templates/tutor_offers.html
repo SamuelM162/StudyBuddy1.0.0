@@ -18,7 +18,18 @@
               {% if o.rate %}<div class="small">Rate: {{ o.rate }}</div>{% endif %}
             </div>
             <div class="text-end">
-              <a href="{{ url_for('chat.thread', other_uid=o.owner_id) }}" class="btn btn-sm sb-btn-primary">Contact tutor</a>
+              {% if my_view %}
+                <form method="post" action="{{ url_for('tutor.delete_offer', offer_id=o.id) }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">
+                    Delete
+                  </button>
+                </form>
+              {% else %}
+                <a href="{{ url_for('chat.thread', other_uid=o.owner_id) }}"
+                   class="btn btn-sm sb-btn-primary">
+                   Contact tutor
+                </a>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -32,8 +43,18 @@
     <div class="sb-card p-3">
       <h5>Need help?</h5>
       <p class="small text-muted">If you can't find what you need here, try posting a tutoring request.</p>
-      <a href="{{ url_for('tutor.requests_list') }}" class="btn sb-btn-outline w-100 mb-2">View requests</a>
-      <a href="{{ url_for('tutor.new_request') }}" class="btn sb-btn-primary w-100">New request</a>
+
+      <a href="{{ url_for('tutor.my_offers') }}" class="btn sb-btn-outline w-100 mb-2">
+        My offers
+      </a>
+
+      <a href="{{ url_for('tutor.requests_list') }}" class="btn sb-btn-outline w-100 mb-2">
+        View requests
+      </a>
+
+      <a href="{{ url_for('tutor.new_request') }}" class="btn sb-btn-primary w-100">
+        New request
+      </a>
     </div>
   </div>
 </div>

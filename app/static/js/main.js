@@ -303,4 +303,108 @@ document.addEventListener("DOMContentLoaded", function () {
       setTimeout(sbEnforceAiClosedIfNeeded, 80);
     });
   }
+
+  // === Block/Unblock (instant UI toggle, no reload) ===
+  // Supports BOTH:
+  // 1) buttons: <button class="sb-block-btn" data-uid="<other_uid>">Block</button>
+  // 2) legacy links: <a href="/social/block/<uid>">Block</a> / <a href="/social/unblock/<uid>">Unblock</a>
+  // Backend: POST /social/api/block/<uid> -> { ok: true, blocked: true/false }
+  document.addEventListener("click", async (e) => {
+    const target = e.target;
+
+    // Case A: button
+    const btn = (target && target.closest) ? target.closest(".sb-block-btn") : null;
+
+    // Case B: legacy link
+    const a = (!btn && target && target.closest) ? target.closest("a[href^='/social/block/'], a[href^='/social/unblock/']") : null;
+
+    if (!btn && !a) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const el = btn || a;
+
+    // Resolve UID
+    let otherUid = "";
+    if (btn) {
+      otherUid = btn.dataset.uid || "";
+    } else if (a) {
+      const href = a.getAttribute("href") || "";
+      // /social/block/<uid> or /social/unblock/<uid>
+      const parts = href.split("/").filter(Boolean);
+      otherUid = parts[2] || "";
+    }
+
+    if (!otherUid) return;
+
+    const prevText = (el.textContent || "").trim();
+
+    // Determine current UI state
+    const wasBlocked = (
+      (btn && btn.classList.contains("is-blocked")) ||
+      (prevText.toLowerCase() === "unblock") ||
+      (a && (a.getAttribute("href") || "").startsWith("/social/unblock/"))
+    );
+
+    // Disable while request
+    el.setAttribute("aria-busy", "true");
+    if (btn) btn.disabled = true;
+
+    try {
+      const res = await fetch(`/social/api/block/${encodeURIComponent(otherUid)}`,
+        {
+          method: "POST",
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+          credentials: "same-origin",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`Block API failed: ${res.status}`);
+      }
+
+      let blocked = null;
+      const ct = (res.headers.get("content-type") || "").toLowerCase();
+      if (ct.includes("application/json")) {
+        const data = await res.json();
+        if (data && data.ok === true && typeof data.blocked === "boolean") {
+          blocked = data.blocked;
+        }
+      }
+
+      // Fallback: if backend didn't return JSON, assume toggle
+      if (blocked === null) blocked = !wasBlocked;
+
+      // Update UI
+      if (blocked) {
+        el.textContent = "Unblock";
+        if (btn) {
+          btn.classList.add("is-blocked");
+          btn.setAttribute("aria-pressed", "true");
+        }
+        if (a) {
+          a.setAttribute("href", `/social/unblock/${otherUid}`);
+          a.setAttribute("aria-pressed", "true");
+        }
+      } else {
+        el.textContent = "Block";
+        if (btn) {
+          btn.classList.remove("is-blocked");
+          btn.setAttribute("aria-pressed", "false");
+        }
+        if (a) {
+          a.setAttribute("href", `/social/block/${otherUid}`);
+          a.setAttribute("aria-pressed", "false");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      // revert text
+      el.textContent = prevText;
+    } finally {
+      el.removeAttribute("aria-busy");
+      if (btn) btn.disabled = false;
+    }
+  });
 });

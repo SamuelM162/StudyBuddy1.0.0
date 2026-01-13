@@ -1,5 +1,5 @@
 import re
-from flask import Blueprint, render_template, request, session, redirect, url_for, flash
+from flask import Blueprint, render_template, request, session, redirect, url_for, flash, jsonify
 from firebase_admin import db as admin_db
 from app.utils import login_required
 
@@ -220,6 +220,36 @@ def friends_list():
         received_requests=received_requests,
         sent_requests=sent_requests,
     )
+
+@social_bp.route("/api/block/<uid>", methods=["POST"])
+@login_required
+def api_block_toggle(uid):
+    current_uid = session["user_id"]
+    if uid == current_uid:
+        return jsonify({"ok": False, "error": "cannot_block_self"}), 400
+
+    ref = admin_db.reference(f"blocks/{current_uid}/{uid}")
+    currently_blocked = ref.get() is not None
+
+    if currently_blocked:
+        ref.delete()
+        blocked_now = False
+    else:
+        ref.set(True)
+        blocked_now = True
+
+    return jsonify({"ok": True, "blocked": blocked_now})
+
+@social_bp.route("/api/is_blocked/<uid>", methods=["GET"])
+@login_required
+def api_is_blocked(uid):
+    current_uid = session["user_id"]
+
+    if uid == current_uid:
+        return jsonify({"ok": True, "blocked": False})
+
+    blocked = admin_db.reference(f"blocks/{current_uid}/{uid}").get() is not None
+    return jsonify({"ok": True, "blocked": bool(blocked)})
 
 @social_bp.route("/block/<uid>")
 @login_required

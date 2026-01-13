@@ -15,11 +15,11 @@
               <div class="d-flex align-items-center">
                 <a href="{{ url_for('profile.view_profile', uid=f.uid) }}" class="btn btn-sm sb-btn-outline me-2">Profile</a>
                 <a href="{{ url_for('chat.thread', other_uid=f.uid) }}" class="btn btn-sm sb-btn-primary me-2">Message</a>
-                {% if f.is_blocked %}
-                  <a href="{{ url_for('social.unblock_user', uid=f.uid) }}" class="btn btn-sm btn-outline-warning">Unblock</a>
-                {% else %}
-                  <a href="{{ url_for('social.block_user', uid=f.uid) }}" class="btn btn-sm btn-outline-danger">Block</a>
-                {% endif %}
+                <button
+                  class="btn btn-sm sb-block-btn"
+                  data-uid="{{ f.uid }}">
+                  Loading…
+                </button>
               </div>
             </li>
           {% endfor %}
@@ -64,4 +64,32 @@
     </div>
   </div>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".sb-block-btn").forEach(btn => {
+    const uid = btn.dataset.uid;
+
+    async function refresh() {
+      const r = await fetch(`/social/api/is_blocked/${uid}`);
+      const data = await r.json();
+      if (data.blocked) {
+        btn.textContent = "Unblock";
+        btn.classList.remove("btn-outline-danger");
+        btn.classList.add("btn-outline-warning");
+      } else {
+        btn.textContent = "Block";
+        btn.classList.remove("btn-outline-warning");
+        btn.classList.add("btn-outline-danger");
+      }
+    }
+
+    btn.addEventListener("click", async () => {
+      await fetch(`/social/api/block/${uid}`, { method: "POST" });
+      refresh();
+    });
+
+    refresh();
+  });
+});
+</script>
 {% endblock %}
