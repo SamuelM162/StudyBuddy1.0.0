@@ -1,12 +1,13 @@
 from flask import Blueprint, request, jsonify, session, current_app
 from app.utils import login_required
 from groq import Groq
+import os
 
 ai_bp = Blueprint("ai", __name__, url_prefix="/ai")
 
 
 def get_groq_client():
-    api_key = current_app.config.get("GROQ_API_KEY")
+    api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise RuntimeError("GROQ_API_KEY is not configured")
     return Groq(api_key=api_key)

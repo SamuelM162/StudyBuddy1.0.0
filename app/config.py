@@ -15,4 +15,4 @@ class Config:
     }
 
     # Groq AI
-    GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
+    GROQ_API_KEY = os.environ.get("GROQ_API_KEY", os.getenv("GROQ_API_KEY"))
