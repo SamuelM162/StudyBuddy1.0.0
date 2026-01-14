@@ -12,17 +12,7 @@ def create_app():
 
     @app.context_processor
     def inject_firebase_config():
-        return {
-            "firebase_config": {
-                "apiKey": app.config.get("FIREBASE_API_KEY"),
-                "authDomain": app.config.get("FIREBASE_AUTH_DOMAIN"),
-                "databaseURL": app.config.get("FIREBASE_DATABASE_URL"),
-                "projectId": app.config.get("FIREBASE_PROJECT_ID"),
-                "storageBucket": app.config.get("FIREBASE_STORAGE_BUCKET"),
-                "messagingSenderId": app.config.get("FIREBASE_MESSAGING_SENDER_ID"),
-                "appId": app.config.get("FIREBASE_APP_ID"),
-            }
-        }
+        return {"firebase_config": app.config.get("FIREBASE_CONFIG", {})}
 
     from app.routes.auth_routes import auth_bp
     from app.routes.main_routes import main_bp
