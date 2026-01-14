@@ -13,17 +13,13 @@ StudyBuddy is a Flask web application using Firebase (Auth + Realtime Database) 
 - Dark/Light theme toggle (Bootstrap 5)
 - Responsive layout usable on phone
 
-## Setup (Local)
+## Setup
 
-### 1) Create virtual environment and install dependencies
+The app can be run in two ways:
+1) Recommended: with Docker Compose (`docker-compose.yml`) using Docker Desktop / PyCharm button (no command line needed)
+2) Local Python run: via `run.py`
 
-~~~bash
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-~~~
-
-### 2) Create a .env file
+## Environment variables (.env)
 
 This project loads configuration and secrets from environment variables.
 
@@ -54,9 +50,34 @@ Notes:
 python -c 'import json; print(json.dumps(json.load(open("firebase-admin.json"))))'
 ~~~
 
-Then paste that output into `.env` after `FIREBASE_ADMIN_JSON=`.
+Then paste the output into `.env` after `FIREBASE_ADMIN_JSON=`.
 
-### 3) Run the app
+## Option A (recommended): Run with Docker Compose (Docker Desktop / PyCharm button)
+
+This is the recommended way to run the project. Docker Compose builds the image and injects `.env` variables only at runtime.
+
+### Run (UI)
+- Open `docker-compose.yml` in PyCharm
+- Click the green "Run / Start" button (Compose Deployment)
+  - or in Docker Desktop: open the Compose project and click Start
+
+Open:
+http://127.0.0.1:5000
+
+Stop:
+- Click Stop in Docker Desktop / PyCharm
+
+## Option B: Run locally with Python (run.py)
+
+### 1) Create virtual environment and install dependencies
+
+~~~bash
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+~~~
+
+### 2) Run the app
 
 ~~~bash
 python run.py
@@ -71,7 +92,6 @@ Do not commit secrets. Add to `.gitignore`:
 
 ~~~gitignore
 .env
-*.json
 ~~~
 
 ## Troubleshooting
