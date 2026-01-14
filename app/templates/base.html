@@ -1,6 +1,22 @@
 <!doctype html>
 <html lang="en" data-bs-theme="dark">
   <head>
+    <script>
+      // Firebase Web config injected by Flask (available on every page)
+      window.FIREBASE_CONFIG = {{ firebase_config | tojson }};
+
+      // Backward/forward compatible aliases (some pages used different names)
+      window.firebaseConfig = window.FIREBASE_CONFIG;
+      window.FIREBASE_WEB_CONFIG = window.FIREBASE_CONFIG;
+
+      // Fail-fast diagnostics (helps catch missing template context / env vars)
+      if (!window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey) {
+        console.error(
+          "FIREBASE_CONFIG missing apiKey. Ensure Flask Config.FIREBASE_CONFIG is loaded and injected into templates.",
+          window.FIREBASE_CONFIG
+        );
+      }
+    </script>
     <meta charset="utf-8">
     <title>StudyBuddy</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -169,7 +185,6 @@
       <div class="sb-ai-header d-flex justify-content-between align-items-center">
         <span>StudyBuddy AI</span>
         <div class="d-flex align-items-center gap-1">
-          <button type="button" class="btn btn-sm btn-link text-light p-0 sb-ai-toggle-size" title="Expand">▢</button>
           <button class="btn btn-sm btn-link text-light p-0" id="ai-toggle">–</button>
         </div>
       </div>

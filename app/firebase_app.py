@@ -1,10 +1,11 @@
 """Firebase initialization for StudyBuddy.
 
-We keep Pyrebase for Authentication (email/password sign-in),
-but we use Firebase Admin SDK for Realtime Database access.
+We use Firebase Admin SDK for Realtime Database access.
 
-Reason: Admin SDK avoids RTDB REST token issues (401 / Permission denied)
-when the backend needs to write data for different users.
+Pyrebase (legacy) is OPTIONAL for email/password auth, but it is not imported
+at module import-time (to avoid gcloud/pkg_resources deprecation warnings).
+If you still need Pyrebase auth, enable it explicitly via:
+    app.config["USE_PYREBASE_AUTH"] = True
 
 The `db` object exposed by this module mimics the small subset of the
 Pyrebase DB API used in routes: `.child(...).get/set/update/remove(...)`.
@@ -16,11 +17,10 @@ from __future__ import annotations
 import os
 from typing import Any, Optional
 
-import pyrebase
-
 import firebase_admin
 from firebase_admin import credentials as admin_credentials
 from firebase_admin import db as admin_db
+from firebase_admin import auth as admin_auth
 
 
 firebase = None
@@ -96,9 +96,15 @@ def init_firebase(app) -> None:
 
     config = app.config.get("FIREBASE_CONFIG") or {}
 
-    # Pyrebase for Authentication (login/register)
-    firebase = pyrebase.initialize_app(config)
-    auth = firebase.auth()
+    # Optional Pyrebase auth (legacy) — only if explicitly enabled.
+    # Default: do NOT import Pyrebase to avoid legacy gcloud/pkg_resources warnings.
+    if app.config.get("USE_PYREBASE_AUTH", False):
+        from pyrebase import initialize_app  # local import on purpose
+        firebase = initialize_app(config)
+        auth = firebase.auth()
+    else:
+        firebase = None
+        auth = admin_auth  # expose Admin auth for token verification helpers if needed
 
     # Admin SDK for Realtime Database
     DATABASE_URL = (config.get("databaseURL") or "").rstrip("/")

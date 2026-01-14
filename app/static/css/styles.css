@@ -31,6 +31,8 @@ html[data-bs-theme='light'] {
   backdrop-filter: blur(18px);
   background: rgba(15, 23, 42, 0.92);
   border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+  position: relative;
+  z-index: 1200;
 }
 
 /* --- Navbar: keep profile/avatar visible on mobile --- */
@@ -309,7 +311,7 @@ html[data-bs-theme='light'] .sb-message-other .sb-bubble {
   /* Allow resize, but keep it stable */
   resize: both;
 
-  z-index: 1050;
+  z-index: 1040;
 }
 
 /* AI widget hidden state (global, prevents auto-show on resize/layout changes) */
@@ -492,7 +494,7 @@ html[data-bs-theme="dark"] .sb-ai-header .btn.btn-link {
   cursor: pointer;
   border: none;
   outline: none;
-  z-index: 1100;
+  z-index: 1040;
   box-shadow: 0 10px 25px rgba(0,0,0,0.25);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
@@ -901,9 +903,6 @@ html[data-bs-theme='light'] .typing-indicator{
     text-decoration: none !important;
   }
 
-}
-.sb-ai-widget.is-hidden{
-  display: none;
 }
 /* === REMOVE AI WIDGET MAXIMIZE BUTTON (keep resize corner) === */
 .sb-ai-toggle-size {
