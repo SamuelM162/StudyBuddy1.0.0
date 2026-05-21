@@ -2,34 +2,41 @@
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-lg-6">
-    <div class="sb-card p-4 mt-3">
-      <h3 class="mb-3">New ride</h3>
+    <div class="sb-card p-4 p-md-5">
+      <div class="sb-section-heading mb-4">
+        <span class="sb-eyebrow">{{ tr("Ride sharing", "Spolujazda") }}</span>
+        <h2 class="mb-2">{{ tr("New ride", "Nová jazda") }}</h2>
+        <p class="text-muted mb-0">{{ tr("Share the trip details students need before joining.", "Vyplň detaily jazdy, ktoré študenti potrebujú pred pripojením.") }}</p>
+      </div>
       <form method="post">
+        {{ csrf_input()|safe }}
         <div class="mb-3">
-          <label class="form-label">From</label>
+          <label class="form-label">{{ tr("From", "Odkiaľ") }}</label>
           <input type="text" name="from_location" class="form-control" required>
         </div>
         <div class="mb-3">
-          <label class="form-label">To</label>
+          <label class="form-label">{{ tr("To", "Kam") }}</label>
           <input type="text" name="to_location" class="form-control" required>
         </div>
         <div class="mb-3">
-          <label class="form-label">Date & time</label>
-          <input type="text" name="departure_time" class="form-control" placeholder="e.g. 2025-12-10 18:00" required>
+          <label class="form-label">{{ tr("Date & time", "Dátum a čas") }}</label>
+          <input type="text" name="departure_time" class="form-control" placeholder="{{ tr('e.g. 2025-12-10 18:00', 'napr. 2025-12-10 18:00') }}" required>
         </div>
         <div class="mb-3">
-          <label class="form-label">Seats available</label>
+          <label class="form-label">{{ tr("Seats available", "Počet miest") }}</label>
           <input type="number" name="seats_total" class="form-control" min="1" value="1">
         </div>
         <div class="mb-3">
-          <label class="form-label">Contribution (optional)</label>
-          <input type="text" name="contribution" class="form-control" placeholder="e.g. ~5 EUR each">
+          <label class="form-label">{{ tr("Contribution (optional)", "Príspevok (voliteľné)") }}</label>
+          <input type="text" name="contribution" class="form-control" placeholder="{{ tr('e.g. ~5 EUR each', 'napr. ~5 EUR na osobu') }}">
         </div>
         <div class="mb-3">
-          <label class="form-label">Notes (optional)</label>
+          <label class="form-label">{{ tr("Notes (optional)", "Poznámky (voliteľné)") }}</label>
           <textarea name="notes" rows="2" class="form-control"></textarea>
         </div>
-        <button type="submit" class="btn sb-btn-primary">Create ride</button>
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn sb-btn-primary">{{ tr("Create ride", "Vytvoriť jazdu") }}</button>
+        </div>
       </form>
     </div>
   </div>

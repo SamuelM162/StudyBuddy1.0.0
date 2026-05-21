@@ -1,80 +1,169 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row mt-3 g-3">
-  <div class="col-lg-8">
-    <div class="sb-card p-4">
-      <h3 class="mb-3">Welcome back 👋</h3>
-      <p class="text-muted">
-        Use the quick actions below to find study partners, tutoring or rides.
+<div class="row g-3">
+  <div class="col-12">
+    <div class="sb-page-title">
+      <div>
+        <span class="sb-eyebrow">{{ tr("Workspace", "Pracovný priestor") }}</span>
+        <h2 class="mb-2">{{ tr("Welcome back", "Vitaj späť") }}</h2>
+        <p class="text-muted mb-0">
+          {{ tr("Use your dashboard to jump into matches, messages, tutoring, and rides.", "Použi nástenku na rýchly vstup do zhôd, správ, doučovania a jázd.") }}
+        </p>
+      </div>
+      <a href="{{ url_for('profile.edit_profile') }}" class="btn sb-btn-outline">{{ tr("Update profile", "Aktualizovať profil") }}</a>
+    </div>
+  </div>
+
+  <div class="col-lg-9">
+    <div class="sb-card p-4 p-md-5">
+      <h3 class="mb-2">{{ tr("Quick actions", "Rýchle akcie") }}</h3>
+      <p class="text-muted mb-4">
+        {{ tr("Use the quick actions below to find study partners, tutoring or rides.", "Použi rýchle akcie nižšie na nájdenie spolužiakov na učenie, doučovania alebo jázd.") }}
       </p>
 
-      <div class="row g-3">
+      <div class="sb-action-grid">
 
-        <!-- STUDY MATCHES -->
-        <div class="col-md-6">
+        <div class="sb-action-card">
           <div class="card sb-subcard h-100">
             <div class="card-body d-flex flex-column justify-content-between">
-              <h5 class="card-title">Study matches</h5>
+              <div class="sb-action-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h5 class="card-title">{{ tr("Study matches", "Študijné zhody") }}</h5>
               <p class="card-text mb-3">
-                Update your interests and see suggested connections.
+                {{ tr("Update your interests and see suggested connections.", "Uprav si záujmy a pozri si odporúčané spojenia.") }}
               </p>
-              <div class="d-flex align-items-center gap-2 mt-2">
+              <div class="d-flex align-items-center gap-2 flex-wrap mt-auto pt-2">
                 <a href="{{ url_for('social.suggestions') }}" class="btn btn-sm sb-btn-primary">
-                  View suggestions
+                  {{ tr("View suggestions", "Zobraziť návrhy") }}
                 </a>
                 <a href="{{ url_for('profile.edit_profile') }}" class="btn btn-sm sb-btn-outline">
-                  Edit profile
+                  {{ tr("Edit profile", "Upraviť profil") }}
                 </a>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- TUTORING -->
-        <div class="col-md-6">
+        <div class="sb-action-card">
           <div class="card sb-subcard h-100">
             <div class="card-body d-flex flex-column justify-content-between">
-              <h5 class="card-title">Tutoring</h5>
+              <div class="sb-action-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M8 8h8M8 12h6M8 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h5 class="card-title">{{ tr("Institution forum", "Fórum inštitúcie") }}</h5>
               <p class="card-text mb-3">
-                Offer tutoring or request help in specific subjects.
+                {{ tr("Ask classmates about courses, exams, deadlines, and school life.", "Pýtaj sa spolužiakov na predmety, skúšky, termíny a život v škole.") }}
               </p>
-              <div class="d-flex align-items-center gap-2 mt-2">
+              <div class="d-flex align-items-center gap-2 flex-wrap mt-auto pt-2">
+                <a href="{{ url_for('forum.forum_home') }}" class="btn btn-sm sb-btn-primary">
+                  {{ tr("Open forum", "Otvoriť fórum") }}
+                </a>
+                <a href="{{ url_for('forum.new_thread') }}" class="btn btn-sm sb-btn-outline">
+                  {{ tr("New thread", "Nové vlákno") }}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sb-action-card">
+          <div class="card sb-subcard h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+              <div class="sb-action-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M4 21V7l8-4 8 4v14" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M9 21v-6h6v6" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M8 10h.01M12 10h.01M16 10h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h5 class="card-title">{{ tr("My institution", "Moja inštitúcia") }}</h5>
+              <p class="card-text mb-3">
+                {{ tr("See students from the same university and build your local community faster.", "Pozri si študentov z rovnakej univerzity a buduj svoju komunitu rýchlejšie.") }}
+              </p>
+              <div class="d-flex align-items-center gap-2 flex-wrap mt-auto pt-2">
+                <a href="{{ url_for('social.institution_view') }}" class="btn btn-sm sb-btn-primary">
+                  {{ tr("Open institution", "Otvoriť inštitúciu") }}
+                </a>
+                <a href="{{ url_for('profile.edit_profile') }}" class="btn btn-sm sb-btn-outline">
+                  {{ tr("Update profile", "Aktualizovať profil") }}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sb-action-card">
+          <div class="card sb-subcard h-100">
+            <div class="card-body d-flex flex-column justify-content-between">
+              <div class="sb-action-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M9 7h7M9 11h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h5 class="card-title">{{ tr("Tutoring", "Doučovanie") }}</h5>
+              <p class="card-text mb-3">
+                {{ tr("Offer tutoring or request help in specific subjects.", "Ponúkni doučovanie alebo požiadaj o pomoc v konkrétnych predmetoch.") }}
+              </p>
+              <div class="d-flex align-items-center gap-2 flex-wrap mt-auto pt-2">
                 <a href="{{ url_for('tutor.offers_list') }}" class="btn btn-sm sb-btn-primary">
-                  Browse tutoring
+                  {{ tr("Browse tutoring", "Prehliadať doučovanie") }}
                 </a>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- RIDE SHARING -->
-        <div class="col-md-6">
+        <div class="sb-action-card">
           <div class="card sb-subcard h-100">
             <div class="card-body d-flex flex-column justify-content-between">
-              <h5 class="card-title">Ride sharing</h5>
+              <div class="sb-action-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12 7 7h10l2 5" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M4 12h16v6H4v-6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M7 18v2M17 18v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M7.5 15h.01M16.5 15h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h5 class="card-title">{{ tr("Ride sharing", "Spolujazda") }}</h5>
               <p class="card-text mb-3">
-                Find or create rides with other students.
+                {{ tr("Find or create rides with other students.", "Nájdi alebo vytvor jazdy s ostatnými študentmi.") }}
               </p>
-              <div class="d-flex align-items-center gap-2 mt-2">
+              <div class="d-flex align-items-center gap-2 flex-wrap mt-auto pt-2">
                 <a href="{{ url_for('rides.rides_list') }}" class="btn btn-sm sb-btn-primary">
-                  View rides
+                  {{ tr("View rides", "Zobraziť jazdy") }}
                 </a>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- MESSAGES -->
-        <div class="col-md-6">
+        <div class="sb-action-card">
           <div class="card sb-subcard h-100">
             <div class="card-body d-flex flex-column justify-content-between">
-              <h5 class="card-title">Messages</h5>
+              <div class="sb-action-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M8 9h8M8 13h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <h5 class="card-title">{{ tr("Messages", "Správy") }}</h5>
               <p class="card-text mb-3">
-                Chat with your friends and tutors.
+                {{ tr("Chat with your friends and tutors.", "Píš si s priateľmi a doučovateľmi.") }}
               </p>
-              <div class="d-flex align-items-center gap-2 mt-2">
+              <div class="d-flex align-items-center gap-2 flex-wrap mt-auto pt-2">
                 <a href="{{ url_for('chat.inbox') }}" class="btn btn-sm sb-btn-primary">
-                  Open inbox
+                  {{ tr("Open inbox", "Otvoriť schránku") }}
                 </a>
               </div>
             </div>
@@ -83,6 +172,16 @@
 
       </div>
 
+    </div>
+  </div>
+
+  <div class="col-lg-3">
+    <div class="sb-card p-4 h-100">
+      <h5 class="mb-3">{{ tr("Next best step", "Najlepší ďalší krok") }}</h5>
+      <p class="text-muted small mb-3">
+        {{ tr("A complete profile makes matches and institution discovery much stronger.", "Vyplnený profil výrazne zlepší zhody a objavovanie v inštitúcii.") }}
+      </p>
+      <a href="{{ url_for('profile.edit_profile') }}" class="btn sb-btn-primary w-100">{{ tr("Complete profile", "Doplniť profil") }}</a>
     </div>
   </div>
 </div>

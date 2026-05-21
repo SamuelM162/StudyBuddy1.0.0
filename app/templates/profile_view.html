@@ -1,20 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-lg-6">
-    <div class="sb-card p-4 mt-3">
-      <h3 class="mb-1">{{ profile.display_name or profile.email }}</h3>
-      <p class="text-muted mb-2">{{ profile.email }}</p>
-      {% if profile.faculty %}<p><strong>Faculty:</strong> {{ profile.faculty }}</p>{% endif %}
-      {% if profile.bio %}<p>{{ profile.bio }}</p>{% endif %}
+  <div class="col-lg-7">
+    <div class="sb-card p-4 p-md-5">
+      <div class="sb-profile-hero mb-4">
+        {% if profile.photo_url %}
+          <img src="{{ profile.photo_url }}" alt="{{ profile.display_name or profile.email }}" class="sb-profile-photo">
+        {% else %}
+          <div class="sb-profile-photo sb-profile-photo-fallback">
+            {{ (profile.display_name or profile.email or '?')[0]|upper }}
+          </div>
+        {% endif %}
+        <div>
+          <h2 class="mb-1">{{ profile.display_name or profile.email }}</h2>
+          <p class="text-muted mb-2">{{ profile.email }}</p>
+          <div class="d-flex flex-wrap gap-2">
+            {% if profile.university %}<span class="badge sb-badge-soft">{{ profile.university }}</span>{% endif %}
+            {% if profile.faculty %}<span class="badge sb-badge-soft">{{ profile.faculty }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% if profile.bio %}<p class="mb-3 text-muted">{{ profile.bio }}</p>{% endif %}
       {% if profile.interests %}
-        <p><strong>Interests:</strong>
+        <p><strong>{{ tr("Interests:", "Záujmy:") }}</strong>
           {% for i in profile.interests %}
-            <span class="badge bg-secondary me-1">{{ i }}</span>
+            <span class="badge sb-badge-soft me-1">{{ i }}</span>
           {% endfor %}
         </p>
       {% endif %}
-      <a href="{{ url_for('chat.thread', other_uid=uid) }}" class="btn sb-btn-primary mt-2">Message</a>
+      {% if current_uid != uid %}
+        <a href="{{ url_for('chat.thread', other_uid=uid) }}" class="btn sb-btn-primary mt-2">{{ tr("Message", "Napísať správu") }}</a>
+      {% endif %}
     </div>
   </div>
 </div>

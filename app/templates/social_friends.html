@@ -1,95 +1,117 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row mt-3">
+<div class="row">
   <div class="col-lg-8">
-    <div class="sb-card p-4 mb-3">
-      <h3 class="mb-3">My friends</h3>
+    <div class="sb-card p-4 p-md-5 mb-3">
+      <div class="sb-section-heading mb-4">
+        <span class="sb-eyebrow">{{ tr("Friends", "Priatelia") }}</span>
+        <h2 class="mb-2">{{ tr("My friends", "Moji priatelia") }}</h2>
+        <p class="text-muted mb-0">{{ tr("Manage your requests and keep your close study circle in one place.", "Spravuj svoje žiadosti a udržuj svoj študijný kruh na jednom mieste.") }}</p>
+      </div>
       {% if friends %}
-        <ul class="list-group list-group-flush">
+        <div class="d-grid gap-3">
           {% for f in friends %}
-            <li class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center">
-              <div>
-                <strong>{{ f.display_name }}</strong>
-                {% if f.faculty %}<div class="small text-muted">{{ f.faculty }}</div>{% endif %}
+            <div class="sb-user-card">
+              <div class="sb-user-card-main">
+                {% if f.photo_url %}
+                  <img src="{{ f.photo_url }}" alt="{{ f.display_name }}" class="sb-user-photo">
+                {% else %}
+                  <div class="sb-user-photo sb-user-photo-fallback">{{ (f.display_name or f.email or '?')[0]|upper }}</div>
+                {% endif %}
+                <div>
+                  <strong>{{ f.display_name }}</strong>
+                  <div class="d-flex flex-wrap gap-2 mt-2">
+                    {% if f.university %}<span class="badge sb-badge-soft">{{ f.university }}</span>{% endif %}
+                    {% if f.faculty %}<span class="badge sb-badge-soft">{{ f.faculty }}</span>{% endif %}
+                  </div>
+                  {% if f.bio %}<div class="small text-muted mt-2">{{ f.bio }}</div>{% endif %}
+                </div>
               </div>
-              <div class="d-flex align-items-center">
-                <a href="{{ url_for('profile.view_profile', uid=f.uid) }}" class="btn btn-sm sb-btn-outline me-2">Profile</a>
-                <a href="{{ url_for('chat.thread', other_uid=f.uid) }}" class="btn btn-sm sb-btn-primary me-2">Message</a>
+              <div class="d-flex align-items-center flex-wrap gap-2">
+                <a href="{{ url_for('profile.view_profile', uid=f.uid) }}" class="btn btn-sm sb-btn-outline me-2">{{ tr("Profile", "Profil") }}</a>
+                <a href="{{ url_for('chat.thread', other_uid=f.uid) }}" class="btn btn-sm sb-btn-primary me-2">{{ tr("Message", "Správa") }}</a>
                 <button
                   class="btn btn-sm sb-block-btn"
                   data-uid="{{ f.uid }}">
-                  Loading…
+                  {{ tr("Block", "Blokovať") }}
                 </button>
               </div>
-            </li>
+            </div>
           {% endfor %}
-        </ul>
+        </div>
       {% else %}
-        <p class="text-muted">You have no friends yet. Try searching for students or checking suggestions.</p>
+        <div class="sb-empty-state">
+          <h5>{{ tr("No friends yet", "Zatiaľ žiadni priatelia") }}</h5>
+          <p class="text-muted mb-0">{{ tr("Try searching for students or checking your study suggestions.", "Skús vyhľadať študentov alebo si pozri študijné návrhy.") }}</p>
+        </div>
       {% endif %}
     </div>
 
-    <div class="sb-card p-4 mb-3">
-      <h4 class="mb-3">Friend requests</h4>
+    <div class="sb-card p-4 p-md-5 mb-3">
+      <div class="sb-section-heading mb-4">
+        <span class="sb-eyebrow">{{ tr("Requests", "Žiadosti") }}</span>
+        <h3 class="mb-2">{{ tr("Friend requests", "Žiadosti o priateľstvo") }}</h3>
+      </div>
 
-      <h6>Received</h6>
+      <h6>{{ tr("Received", "Prijaté") }}</h6>
       {% if received_requests %}
-        <ul class="list-group list-group-flush mb-3">
+        <div class="d-grid gap-3 mb-3">
           {% for r in received_requests %}
-          <li class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center">
-            <span>{{ r.display_name }}</span>
-            <span>
-              <a href="{{ url_for('social.accept_request', from_uid=r.uid) }}" class="btn btn-sm sb-btn-primary me-1">Accept</a>
-              <a href="{{ url_for('social.decline_request', from_uid=r.uid) }}" class="btn btn-sm sb-btn-outline">Decline</a>
-            </span>
-          </li>
+          <div class="sb-user-card">
+            <div class="sb-user-card-main">
+              {% if r.photo_url %}
+                <img src="{{ r.photo_url }}" alt="{{ r.display_name }}" class="sb-user-photo">
+              {% else %}
+                <div class="sb-user-photo sb-user-photo-fallback">{{ (r.display_name or r.email or '?')[0]|upper }}</div>
+              {% endif %}
+              <div>
+                <strong>{{ r.display_name }}</strong>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                  {% if r.university %}<span class="badge sb-badge-soft">{{ r.university }}</span>{% endif %}
+                  {% if r.faculty %}<span class="badge sb-badge-soft">{{ r.faculty }}</span>{% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <form method="post" action="{{ url_for('social.accept_request', from_uid=r.uid) }}" class="mb-0">
+                {{ csrf_input()|safe }}
+                <button type="submit" class="btn btn-sm sb-btn-primary me-1">{{ tr("Accept", "Prijať") }}</button>
+              </form>
+              <form method="post" action="{{ url_for('social.decline_request', from_uid=r.uid) }}" class="mb-0">
+                {{ csrf_input()|safe }}
+                <button type="submit" class="btn btn-sm sb-btn-outline">{{ tr("Decline", "Odmietnuť") }}</button>
+              </form>
+            </div>
+          </div>
           {% endfor %}
-        </ul>
+        </div>
       {% else %}
-        <p class="text-muted">No incoming friend requests.</p>
+        <p class="text-muted">{{ tr("No incoming friend requests.", "Žiadne prichádzajúce žiadosti o priateľstvo.") }}</p>
       {% endif %}
 
-      <h6>Sent</h6>
+      <h6>{{ tr("Sent", "Odoslané") }}</h6>
       {% if sent_requests %}
-        <ul class="list-group list-group-flush">
+        <div class="d-grid gap-3">
           {% for r in sent_requests %}
-          <li class="list-group-item bg-transparent text-light">
-            Request sent to {{ r.display_name }}
-          </li>
+          <div class="sb-user-card">
+            <div class="sb-user-card-main">
+              {% if r.photo_url %}
+                <img src="{{ r.photo_url }}" alt="{{ r.display_name }}" class="sb-user-photo">
+              {% else %}
+                <div class="sb-user-photo sb-user-photo-fallback">{{ (r.display_name or r.email or '?')[0]|upper }}</div>
+              {% endif %}
+              <div>
+                <strong>{{ r.display_name }}</strong>
+                <div class="small text-muted mt-2">{{ tr("Request pending", "Žiadosť čaká na vybavenie") }}</div>
+              </div>
+            </div>
+          </div>
           {% endfor %}
-        </ul>
+        </div>
       {% else %}
-        <p class="text-muted">No sent friend requests.</p>
+        <p class="text-muted">{{ tr("No sent friend requests.", "Žiadne odoslané žiadosti o priateľstvo.") }}</p>
       {% endif %}
     </div>
   </div>
 </div>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".sb-block-btn").forEach(btn => {
-    const uid = btn.dataset.uid;
-
-    async function refresh() {
-      const r = await fetch(`/social/api/is_blocked/${uid}`);
-      const data = await r.json();
-      if (data.blocked) {
-        btn.textContent = "Unblock";
-        btn.classList.remove("btn-outline-danger");
-        btn.classList.add("btn-outline-warning");
-      } else {
-        btn.textContent = "Block";
-        btn.classList.remove("btn-outline-warning");
-        btn.classList.add("btn-outline-danger");
-      }
-    }
-
-    btn.addEventListener("click", async () => {
-      await fetch(`/social/api/block/${uid}`, { method: "POST" });
-      refresh();
-    });
-
-    refresh();
-  });
-});
-</script>
 {% endblock %}

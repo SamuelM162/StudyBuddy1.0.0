@@ -1,31 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row mt-3 g-3">
+<div class="row g-3">
   <div class="col-lg-8">
-    <div class="sb-card p-4">
-      <h3 class="mb-3">Ride sharing</h3>
-      <p class="text-muted">
-        Find or offer rides with other students.
-      </p>
-      <div class="d-flex gap-2 mb-3">
-        <a href="{{ url_for('rides.rides_list') }}"
-           class="btn btn-sm {{ 'sb-btn-primary' if not mine else 'sb-btn-outline' }}">
-          All rides
-        </a>
-        <a href="{{ url_for('rides.rides_list', mine=1) }}"
-           class="btn btn-sm {{ 'sb-btn-primary' if mine else 'sb-btn-outline' }}">
-          My rides
-        </a>
+    <div class="sb-card p-4 p-md-5">
+      <div class="sb-page-title">
+        <div>
+          <span class="sb-eyebrow">{{ tr("Mobility", "Mobilita") }}</span>
+          <h2 class="mb-2">{{ tr("Ride sharing", "Spolujazda") }}</h2>
+          <p class="text-muted mb-0">
+            {{ tr("Find or offer rides with other students.", "Nájdi alebo ponúkni jazdu s ďalšími študentmi.") }}
+          </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="{{ url_for('rides.rides_list') }}"
+             class="btn btn-sm {{ 'sb-btn-primary' if not mine else 'sb-btn-outline' }}">
+            {{ tr("All rides", "Všetky jazdy") }}
+          </a>
+          <a href="{{ url_for('rides.rides_list', mine=1) }}"
+             class="btn btn-sm {{ 'sb-btn-primary' if mine else 'sb-btn-outline' }}">
+            {{ tr("My rides", "Moje jazdy") }}
+          </a>
+        </div>
       </div>
 
       {% if rides %}
-        <ul class="list-group list-group-flush">
+        <ul class="sb-list">
           {% for r in rides %}
-            <li class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-start">
-              <div class="me-3">
-                <div class="fw-semibold">
+            <li class="sb-list-item">
+              <div class="sb-list-item-main">
+                <h5 class="mb-1">
                   {{ r.from_location }} → {{ r.to_location }}
-                </div>
+                </h5>
 
                 {% if r.departure_time %}
                   <div class="small text-muted">
@@ -34,98 +39,99 @@
                 {% endif %}
 
                 <div class="small text-muted mt-1">
-                  Seats:
+                  {{ tr("Seats:", "Miesta:") }}
                   {{ r.seats_taken }}/{{ r.seats_total }}
                   {% if r.seats_left > 0 %}
-                    · {{ r.seats_left }} left
+                    · {{ r.seats_left }} {{ tr("left", "voľné") }}
                   {% else %}
-                    · Full
+                    · {{ tr("Full", "Plné") }}
                   {% endif %}
                 </div>
 
                 {% if r.contribution %}
                   <div class="small text-muted">
-                    Contribution: {{ r.contribution }}
+                    {{ tr("Contribution:", "Príspevok:") }} {{ r.contribution }}
                   </div>
                 {% endif %}
 
                 {% if r.notes %}
                   <div class="small text-muted">
-                    Notes: {{ r.notes }}
+                    {{ tr("Notes:", "Poznámky:") }} {{ r.notes }}
                   </div>
                 {% endif %}
               </div>
 
-              <div class="text-end d-flex flex-column align-items-end justify-content-between">
-                <!-- Status badge row (fixed height using invisible placeholder) -->
-                <div class="mb-1">
+              <div class="sb-list-actions">
+                <div>
                   {% if r.is_driver %}
-                    <span class="badge bg-secondary d-inline-block">Your ride</span>
+                    <span class="badge bg-secondary d-inline-block">{{ tr("Your ride", "Vaša jazda") }}</span>
                   {% elif r.is_passenger %}
-                    <span class="badge bg-success d-inline-block">You joined</span>
+                    <span class="badge bg-success d-inline-block">{{ tr("You joined", "Ste prihlásený") }}</span>
                   {% elif r.is_full %}
-                    <span class="badge bg-danger d-inline-block">Full</span>
+                    <span class="badge bg-danger d-inline-block">{{ tr("Full", "Plné") }}</span>
                   {% else %}
-                    <!-- invisible placeholder to keep layout from jumping -->
-                    <span class="badge invisible d-inline-block">Status</span>
+                    <span class="badge bg-secondary d-inline-block">{{ tr("Open", "Voľné") }}</span>
                   {% endif %}
                 </div>
 
-                <!-- Action buttons row -->
-                <div class="d-flex flex-column align-items-end">
-                  {% if not r.is_driver %}
-                    <a href="{{ url_for('chat.thread', other_uid=r.driver_id) }}"
-                       class="btn btn-sm sb-btn-outline mb-1">
-                      Message driver
-                    </a>
-                  {% endif %}
+                {% if not r.is_driver %}
+                  <a href="{{ url_for('chat.thread', other_uid=r.driver_id) }}"
+                     class="btn btn-sm sb-btn-outline">
+                    {{ tr("Message driver", "Napísať vodičovi") }}
+                  </a>
+                {% endif %}
 
-                  {% if r.is_driver %}
-                    <form method="post"
-                          action="{{ url_for('rides.cancel_ride', ride_id=r.id) }}"
-                          class="mt-1">
-                      <button type="submit" class="btn btn-sm btn-outline-danger">
-                        Cancel ride
-                      </button>
-                    </form>
+                {% if r.is_driver %}
+                  <form method="post"
+                        action="{{ url_for('rides.cancel_ride', ride_id=r.id) }}"
+                        class="mb-0">
+                    {{ csrf_input()|safe }}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                      {{ tr("Cancel ride", "Zrušiť jazdu") }}
+                    </button>
+                  </form>
 
-                  {% elif r.is_passenger %}
-                    <form method="post"
-                          action="{{ url_for('rides.leave_ride', ride_id=r.id) }}"
-                          class="mt-1">
-                      <button type="submit" class="btn btn-sm btn-outline-secondary">
-                        Leave ride
-                      </button>
-                    </form>
+                {% elif r.is_passenger %}
+                  <form method="post"
+                        action="{{ url_for('rides.leave_ride', ride_id=r.id) }}"
+                        class="mb-0">
+                    {{ csrf_input()|safe }}
+                    <button type="submit" class="btn btn-sm sb-btn-outline">
+                      {{ tr("Leave ride", "Opustiť jazdu") }}
+                    </button>
+                  </form>
 
-                  {% elif not r.is_full %}
-                    <form method="post"
-                          action="{{ url_for('rides.join_ride', ride_id=r.id) }}"
-                          class="mt-1">
-                      <button type="submit" class="btn btn-sm sb-btn-primary">
-                        Join ride
-                      </button>
-                    </form>
-                  {% endif %}
-                </div>
+                {% elif not r.is_full %}
+                  <form method="post"
+                        action="{{ url_for('rides.join_ride', ride_id=r.id) }}"
+                        class="mb-0">
+                    {{ csrf_input()|safe }}
+                    <button type="submit" class="btn btn-sm sb-btn-primary">
+                      {{ tr("Join ride", "Pripojiť sa") }}
+                    </button>
+                  </form>
+                {% endif %}
               </div>
             </li>
           {% endfor %}
         </ul>
       {% else %}
-        <p class="text-muted mb-0">No rides available yet.</p>
+        <div class="sb-empty-state">
+          <h5>{{ tr("No rides available yet", "Zatiaľ nie sú dostupné žiadne jazdy") }}</h5>
+          <p class="text-muted mb-0">{{ tr("Create the first ride or check back when classmates start planning trips.", "Vytvor prvú jazdu alebo sa vráť neskôr, keď spolužiaci začnú plánovať cesty.") }}</p>
+        </div>
       {% endif %}
     </div>
   </div>
 
   <div class="col-lg-4">
-    <div class="sb-card p-4">
-      <h5 class="mb-3">Create a ride</h5>
+    <div class="sb-card p-4 h-100">
+      <h5 class="mb-3">{{ tr("Create a ride", "Vytvoriť jazdu") }}</h5>
       <p class="mb-2 small text-muted">
-        Offer a ride and let other students join.
+        {{ tr("Offer a ride and let other students join.", "Ponúkni jazdu a umožni ďalším študentom sa pripojiť.") }}
       </p>
       <a href="{{ url_for('rides.new_ride') }}" class="btn sb-btn-primary w-100">
-        New ride
+        {{ tr("New ride", "Nová jazda") }}
       </a>
     </div>
   </div>

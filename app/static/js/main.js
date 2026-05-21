@@ -1,11 +1,13 @@
 document.addEventListener("DOMContentLoaded", function () {
+  const i18n = window.STUDYPEER_I18N || {};
+
   // === Light/Dark theme toggle ===
   const themeToggle = document.getElementById("themeToggle");
   const themeIcon = document.getElementById("themeIcon");
   const rootEl = document.documentElement;
 
   // Apply saved theme on load
-  const savedTheme = localStorage.getItem("sb-theme") || "dark";
+  const savedTheme = localStorage.getItem("sb-theme") || "light";
   if (savedTheme === "dark") {
     rootEl.setAttribute("data-bs-theme", "dark");
     document.body.classList.add("dark-mode");
@@ -58,6 +60,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function sbUpdateNavbarFit() {
     if (!sbNavbar || !sbInlineLinks || !sbMenuLinks) return;
+
+    if (window.innerWidth < 992) {
+      sbSetLinksMode("menu");
+      return;
+    }
 
     // Temporarily show inline links so we can measure their natural width.
     const inlineWasHidden = sbInlineLinks.classList.contains("d-none");
@@ -112,6 +119,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!chatFormEl) return;
 
+    // The chat thread page owns its AJAX submit + clear behavior.
+    // A global submit clearer can erase the draft before that handler reads it.
+    if (chatFormEl.id === "chat-form") return;
+
     const chatInputEl =
       document.getElementById("chat-input") ||
       chatFormEl.querySelector("#chat-input") ||
@@ -157,7 +168,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   sbWireChatInputClear();
 
-  // === StudyBuddy AI Assistant toggle & chat ===
+  // === StudyPeer AI Assistant toggle & chat ===
   const aiWidget = document.getElementById("ai-widget");
   const aiBubble = document.getElementById("ai-bubble"); // floating messenger-style bubble
   const aiHeaderToggle = document.getElementById("ai-toggle"); // small "–" button in widget header
@@ -188,6 +199,121 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
+    function escapeHtml(value) {
+      return (value ?? "").toString().replace(/[&<>"']/g, function (char) {
+        return {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#39;",
+        }[char];
+      });
+    }
+
+    function renderInlineMarkdown(text) {
+      const codeSpans = [];
+      let working = (text ?? "").toString().replace(/`([^`\n]+)`/g, function (_, code) {
+        const index = codeSpans.length;
+        codeSpans.push(`<code>${escapeHtml(code)}</code>`);
+        return `\u0000CODE${index}\u0000`;
+      });
+
+      let html = escapeHtml(working);
+      html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|mailto:[^\s)]+)\)/g, function (_, label, url) {
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+      });
+      html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      html = html.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+      html = html.replace(/(^|[\s(])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+      html = html.replace(/(^|[\s(])_([^_\n]+)_/g, "$1<em>$2</em>");
+
+      codeSpans.forEach(function (code, index) {
+        html = html.replace(`\u0000CODE${index}\u0000`, code);
+      });
+      return html;
+    }
+
+    function renderAiMarkdown(markdown) {
+      const lines = (markdown ?? "").toString().replace(/\r\n?/g, "\n").split("\n");
+      const html = [];
+      let paragraph = [];
+      let listType = null;
+      let inFence = false;
+      let fenceLines = [];
+
+      function flushParagraph() {
+        if (!paragraph.length) return;
+        html.push(`<p>${renderInlineMarkdown(paragraph.join(" "))}</p>`);
+        paragraph = [];
+      }
+
+      function closeList() {
+        if (!listType) return;
+        html.push(`</${listType}>`);
+        listType = null;
+      }
+
+      lines.forEach(function (line) {
+        if (/^\s*```/.test(line)) {
+          if (inFence) {
+            html.push(`<pre><code>${escapeHtml(fenceLines.join("\n"))}</code></pre>`);
+            fenceLines = [];
+            inFence = false;
+          } else {
+            flushParagraph();
+            closeList();
+            inFence = true;
+          }
+          return;
+        }
+
+        if (inFence) {
+          fenceLines.push(line);
+          return;
+        }
+
+        if (!line.trim()) {
+          flushParagraph();
+          closeList();
+          return;
+        }
+
+        const heading = line.match(/^(#{1,6})\s+(.+)$/);
+        if (heading) {
+          flushParagraph();
+          closeList();
+          const level = heading[1].length;
+          html.push(`<h${level}>${renderInlineMarkdown(heading[2].trim())}</h${level}>`);
+          return;
+        }
+
+        const item = line.match(/^\s*((?:[-*+])|(?:\d+\.))\s+(.+)$/);
+        if (item) {
+          flushParagraph();
+          const nextListType = /^\d+\./.test(item[1]) ? "ol" : "ul";
+          if (listType !== nextListType) {
+            closeList();
+            html.push(`<${nextListType}>`);
+            listType = nextListType;
+          }
+          html.push(`<li>${renderInlineMarkdown(item[2].trim())}</li>`);
+          return;
+        }
+
+        closeList();
+        paragraph.push(line.trim());
+      });
+
+      if (inFence) {
+        html.push(`<pre><code>${escapeHtml(fenceLines.join("\n"))}</code></pre>`);
+      }
+      flushParagraph();
+      closeList();
+
+      return html.join("");
+    }
+
     function appendAiMessage(role, text) {
       // role: 'me' | 'bot'
       const stick = isNearBottom(aiMessages);
@@ -196,9 +322,8 @@ document.addEventListener("DOMContentLoaded", function () {
       node.classList.add(role === "me" ? "sb-ai-message-user" : "sb-ai-message-bot");
 
       const safeText = (text ?? "").toString();
-      // Allow markdown rendering for bot if marked is available
-      if (role === "bot" && window.marked) {
-        node.innerHTML = window.marked.parse(safeText);
+      if (role === "bot") {
+        node.innerHTML = renderAiMarkdown(safeText);
       } else {
         node.textContent = safeText;
       }
@@ -273,12 +398,15 @@ document.addEventListener("DOMContentLoaded", function () {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
       })
-        .then((response) => response.json())
+        .then((response) => {
+          if (!response.ok) throw new Error(`AI request failed: ${response.status}`);
+          return response.json();
+        })
         .then((data) => {
-          appendAiMessage("bot", data.reply || "(no reply)");
+          appendAiMessage("bot", data.reply || i18n.noReply || "(no reply)");
         })
         .catch(() => {
-          appendAiMessage("bot", "Error talking to AI.");
+          appendAiMessage("bot", i18n.aiError || "Error talking to AI.");
         });
     });
 
@@ -309,6 +437,52 @@ document.addEventListener("DOMContentLoaded", function () {
   // 1) buttons: <button class="sb-block-btn" data-uid="<other_uid>">Block</button>
   // 2) legacy links: <a href="/social/block/<uid>">Block</a> / <a href="/social/unblock/<uid>">Unblock</a>
   // Backend: POST /social/api/block/<uid> -> { ok: true, blocked: true/false }
+  function sbSetBlockButtonState(btn, blocked) {
+    if (!btn) return;
+
+    if (blocked) {
+      btn.classList.add("is-blocked");
+      btn.textContent = i18n.unblock || "Unblock";
+      btn.setAttribute("aria-pressed", "true");
+    } else {
+      btn.classList.remove("is-blocked");
+      btn.textContent = i18n.block || "Block";
+      btn.setAttribute("aria-pressed", "false");
+    }
+  }
+
+  async function sbRefreshBlockButtons() {
+    const buttons = Array.from(document.querySelectorAll(".sb-block-btn[data-uid]"));
+    if (!buttons.length) return;
+
+    await Promise.all(buttons.map(async (btn) => {
+      const uid = btn.dataset.uid || "";
+      if (!uid) {
+        sbSetBlockButtonState(btn, false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/social/api/is_blocked/${encodeURIComponent(uid)}?_=${Date.now()}`, {
+          method: "GET",
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+
+        if (!res.ok) throw new Error(`Block state API failed: ${res.status}`);
+
+        const data = await res.json();
+        sbSetBlockButtonState(btn, !!(data && data.ok === true && data.blocked === true));
+      } catch (err) {
+        console.error(err);
+        sbSetBlockButtonState(btn, false);
+      }
+    }));
+  }
+
+  sbRefreshBlockButtons();
+
   document.addEventListener("click", async (e) => {
     const target = e.target;
 
@@ -343,7 +517,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Determine current UI state
     const wasBlocked = (
       (btn && btn.classList.contains("is-blocked")) ||
-      (prevText.toLowerCase() === "unblock") ||
+      (prevText.toLowerCase() === String(i18n.unblock || "Unblock").toLowerCase()) ||
       (a && (a.getAttribute("href") || "").startsWith("/social/unblock/"))
     );
 
@@ -377,22 +551,16 @@ document.addEventListener("DOMContentLoaded", function () {
       if (blocked === null) blocked = !wasBlocked;
 
       // Update UI
-      if (blocked) {
-        el.textContent = "Unblock";
-        if (btn) {
-          btn.classList.add("is-blocked");
-          btn.setAttribute("aria-pressed", "true");
-        }
+      if (btn) {
+        sbSetBlockButtonState(btn, blocked);
+      } else if (blocked) {
+        el.textContent = i18n.unblock || "Unblock";
         if (a) {
           a.setAttribute("href", `/social/unblock/${otherUid}`);
           a.setAttribute("aria-pressed", "true");
         }
       } else {
-        el.textContent = "Block";
-        if (btn) {
-          btn.classList.remove("is-blocked");
-          btn.setAttribute("aria-pressed", "false");
-        }
+        el.textContent = i18n.block || "Block";
         if (a) {
           a.setAttribute("href", `/social/block/${otherUid}`);
           a.setAttribute("aria-pressed", "false");

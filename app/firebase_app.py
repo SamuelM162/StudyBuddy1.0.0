@@ -1,5 +1,5 @@
 """
-Firebase initialization for StudyBuddy.
+Firebase initialization for StudyPeer.
 
 We use Firebase Admin SDK for Realtime Database access.
 
@@ -15,8 +15,9 @@ Token arguments are accepted but ignored (Admin SDK does not need them).
 
 from __future__ import annotations
 
-import os
 import json
+import glob
+import os
 from typing import Any, Optional
 
 import firebase_admin
@@ -33,7 +34,24 @@ DATABASE_URL = None
 
 
 # Default location of the service account key in this repo (fallback only)
-DEFAULT_SERVICE_ACCOUNT_PATH = "app/studybuddyismai-firebase-adminsdk-fbsvc-73c23ec017.json"
+DEFAULT_SERVICE_ACCOUNT_PATH = "app/studypeer-firebase-adminsdk.json"
+DEFAULT_SERVICE_ACCOUNT_GLOB = "app/*firebase-adminsdk*.json"
+
+
+def _resolve_default_service_account_path() -> str:
+    """Prefer the renamed StudyPeer key file, then fall back to any local admin key."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(here, ".."))
+    preferred_path = os.path.join(project_root, DEFAULT_SERVICE_ACCOUNT_PATH)
+
+    if os.path.exists(preferred_path):
+        return DEFAULT_SERVICE_ACCOUNT_PATH
+
+    matches = sorted(glob.glob(os.path.join(project_root, DEFAULT_SERVICE_ACCOUNT_GLOB)))
+    if matches:
+        return os.path.relpath(matches[0], project_root)
+
+    return DEFAULT_SERVICE_ACCOUNT_PATH
 
 
 class _GetResult:
@@ -139,7 +157,7 @@ def init_firebase(app) -> None:
         cred_source = (
             app.config.get("FIREBASE_SERVICE_ACCOUNT")
             or os.getenv("FIREBASE_SERVICE_ACCOUNT")
-            or DEFAULT_SERVICE_ACCOUNT_PATH
+            or _resolve_default_service_account_path()
         )
 
     _init_admin_sdk(DATABASE_URL, cred_source)

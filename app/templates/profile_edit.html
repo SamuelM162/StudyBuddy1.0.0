@@ -1,39 +1,65 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-lg-7">
-    <div class="sb-card p-4 mt-3">
-      <h3 class="mb-3">My profile</h3>
+  <div class="col-lg-8">
+    <div class="sb-card p-4 p-md-5">
+      <div class="sb-section-heading mb-4">
+        <span class="sb-eyebrow">{{ tr("Profile", "Profil") }}</span>
+        <h2 class="mb-2">{{ tr("My profile", "Môj profil") }}</h2>
+        <p class="text-muted mb-0">{{ tr("Keep your details current so StudyPeer can show better classmates, friends, and institution results.", "Udržuj svoj profil aktuálny, aby StudyPeer vedel zobraziť lepšie zhody spolužiakov, priateľov a členov tvojej inštitúcie.") }}</p>
+      </div>
       <form method="post">
+        {{ csrf_input()|safe }}
         <div class="mb-3">
-          <label class="form-label">Display name</label>
+          <label class="form-label">{{ tr("Display name", "Zobrazované meno") }}</label>
           <input type="text" name="display_name" class="form-control"
                  value="{{ profile.display_name if profile else '' }}">
         </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">{{ tr("University / institution", "Univerzita / inštitúcia") }}</label>
+            <select name="university" class="form-select">
+              <option value="">{{ tr("Select your university", "Vyber svoju univerzitu") }}</option>
+              {% for university in universities %}
+                <option value="{{ university.value }}" {% if profile and profile.university == university.value %}selected{% endif %}>
+                  {{ university.label_en if current_language == 'en' else university.label_sk }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">{{ tr("Profile photo URL", "URL profilovej fotky") }}</label>
+            <input type="url" name="photo_url" class="form-control"
+                   placeholder="https://example.com/photo.jpg"
+                   value="{{ profile.photo_url if profile else '' }}">
+          </div>
+        </div>
         <div class="mb-3">
-          <label class="form-label">Faculty / School</label>
+          <label class="form-label">{{ tr("Faculty / School", "Fakulta / škola") }}</label>
           <input type="text" name="faculty" class="form-control"
                  value="{{ profile.faculty if profile else '' }}">
         </div>
         <div class="mb-3">
-          <label class="form-label">Bio</label>
+          <label class="form-label">{{ tr("Bio", "O mne") }}</label>
           <textarea name="bio" rows="3" class="form-control">{{ profile.bio if profile else '' }}</textarea>
         </div>
         <div class="mb-3">
-          <label class="form-label">Subjects / interests</label>
+          <label class="form-label">{{ tr("Subjects / interests", "Predmety / záujmy") }}</label>
           <input type="text" name="interests" class="form-control"
-                 placeholder="e.g. Mathematics I, Programming 1, Economics"
+                 placeholder="{{ tr('e.g. Mathematics I, Programming 1, Economics', 'napr. Matematika I, Programovanie 1, Ekonómia') }}"
                  value="{{ profile.interests | join(', ') if profile and profile.interests else '' }}">
-          <div class="form-text">Comma-separated list. Used for study matches.</div>
+          <div class="form-text">{{ tr("Comma-separated list. Used for study matches.", "Zoznam oddelený čiarkami. Používa sa pre študijné zhody.") }}</div>
         </div>
         <div class="form-check mb-3">
           <input class="form-check-input" type="checkbox" name="is_tutor" id="is_tutor"
                  {% if profile.is_tutor %}checked{% endif %}>
           <label class="form-check-label" for="is_tutor">
-            I am available as a tutor for at least one subject.
+            {{ tr("I am available as a tutor for at least one subject.", "Som dostupný ako doučovateľ aspoň pre jeden predmet.") }}
           </label>
         </div>
-        <button type="submit" class="btn sb-btn-primary">Save profile</button>
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn sb-btn-primary">{{ tr("Save profile", "Uložiť profil") }}</button>
+        </div>
       </form>
     </div>
   </div>

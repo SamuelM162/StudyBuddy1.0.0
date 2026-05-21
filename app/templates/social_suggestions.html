@@ -1,37 +1,52 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row mt-3">
-  <div class="col-lg-6 col-md-8 mx-auto">
-    <div class="sb-card p-4">
-      <h3 class="mb-3">Suggested study matches</h3>
+<div class="row">
+  <div class="col-lg-8 col-md-10 mx-auto">
+    <div class="sb-card p-4 p-md-5">
+      <div class="sb-section-heading mb-4">
+        <span class="sb-eyebrow">{{ tr("Study network", "Študijná sieť") }}</span>
+        <h2 class="mb-2">{{ tr("Suggested study matches", "Odporúčané študijné zhody") }}</h2>
+        <p class="text-muted mb-0">{{ tr("These students share subjects with you, so they are a good place to start new conversations.", "Títo študenti s tebou zdieľajú predmety, takže sú dobrým začiatkom pre nové konverzácie.") }}</p>
+      </div>
       {% if suggestions %}
         {% for s in suggestions %}
-        <div class="card sb-subcard mb-2" style="border-radius:12px;">
-          <div class="card-body" style="text-align: left;">
-            <div>
+        <div class="sb-user-card mb-3">
+          <div class="sb-user-card-main">
+            {% if s.photo_url %}
+              <img src="{{ s.photo_url }}" alt="{{ s.display_name }}" class="sb-user-photo">
+            {% else %}
+              <div class="sb-user-photo sb-user-photo-fallback">{{ (s.display_name or s.email or '?')[0]|upper }}</div>
+            {% endif %}
+            <div class="flex-grow-1">
               <h6 class="mb-1">{{ s.display_name }}</h6>
-              {% if s.faculty %}
-                <div class="small text-muted">{{ s.faculty }}</div>
-              {% endif %}
+              <div class="d-flex flex-wrap gap-2 mb-2">
+                {% if s.university %}<span class="badge sb-badge-soft">{{ s.university }}</span>{% endif %}
+                {% if s.faculty %}<span class="badge sb-badge-soft">{{ s.faculty }}</span>{% endif %}
+              </div>
+              <div class="small text-success mb-2">
+                {{ tr("Shared subjects:", "Spoločné predmety:") }} {{ s.shared_count }}
+              </div>
               <div class="small mt-1">
-                Interests:
-                {% for i in s.interests %}
-                  <span class="badge bg-secondary me-1">{{ i }}</span>
+                {% for i in s.shared_list %}
+                  <span class="badge sb-badge-soft me-1">{{ i }}</span>
                 {% endfor %}
               </div>
-              <div class="small text-success mt-1">
-                Shared subjects: {{ s.shared_count }}
-              </div>
             </div>
-            <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
-              <a href="{{ url_for('profile.view_profile', uid=s.uid) }}" class="btn btn-sm sb-btn-outline">View</a>
-              <a href="{{ url_for('social.send_request', target_uid=s.uid) }}" class="btn btn-sm sb-btn-primary">Add friend</a>
-            </div>
+          </div>
+          <div class="d-flex justify-content-end align-items-center gap-2 mt-3 flex-wrap">
+            <a href="{{ url_for('profile.view_profile', uid=s.uid) }}" class="btn btn-sm sb-btn-outline">{{ tr("View", "Zobraziť") }}</a>
+            <form method="post" action="{{ url_for('social.send_request', target_uid=s.uid) }}" class="mb-0">
+              {{ csrf_input()|safe }}
+              <button type="submit" class="btn btn-sm sb-btn-primary">{{ tr("Add friend", "Pridať priateľa") }}</button>
+            </form>
           </div>
         </div>
         {% endfor %}
       {% else %}
-        <p class="text-muted">No suggestions yet. Add some subjects to your profile to get matches.</p>
+        <div class="sb-empty-state">
+          <h5>{{ tr("No suggestions yet", "Zatiaľ žiadne návrhy") }}</h5>
+          <p class="text-muted mb-0">{{ tr("Add some subjects to your profile to get better study matches.", "Pridaj si do profilu predmety, aby si získal lepšie študijné zhody.") }}</p>
+        </div>
       {% endif %}
     </div>
   </div>

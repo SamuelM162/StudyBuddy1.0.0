@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash
 from app.firebase_app import db
-from app.utils import login_required
+from app.i18n import tr
+from app.utils import login_required, normalize_text
 
 tutor_bp = Blueprint("tutor", __name__, url_prefix="/tutor")
 
@@ -44,11 +45,15 @@ def my_offers():
 @login_required
 def new_offer():
     if request.method == "POST":
-        subject = request.form.get("subject")
-        description = request.form.get("description")
-        rate = request.form.get("rate")
+        subject = normalize_text(request.form.get("subject"), 120)
+        description = normalize_text(request.form.get("description"), 500)
+        rate = normalize_text(request.form.get("rate"), 80)
         uid = session["user_id"]
         email = session.get("email")
+
+        if not subject or not description:
+            flash(tr("Subject and description are required.", "Predmet a popis sú povinné."), "danger")
+            return redirect(url_for("tutor.new_offer"))
 
         data = {
             "owner_id": uid,
@@ -58,7 +63,7 @@ def new_offer():
             "rate": rate
         }
         db.child("tutor_offers").push(data)
-        flash("Tutoring offer created.", "success")
+        flash(tr("Tutoring offer created.", "Ponuka doučovania bola vytvorená."), "success")
         return redirect(url_for("tutor.offers_list"))
 
     return render_template("tutor_offer_new.html")
@@ -77,11 +82,15 @@ def requests_list():
 @login_required
 def new_request():
     if request.method == "POST":
-        subject = request.form.get("subject")
-        description = request.form.get("description")
-        budget = request.form.get("budget")
+        subject = normalize_text(request.form.get("subject"), 120)
+        description = normalize_text(request.form.get("description"), 500)
+        budget = normalize_text(request.form.get("budget"), 80)
         uid = session["user_id"]
         email = session.get("email")
+
+        if not subject or not description:
+            flash(tr("Subject and description are required.", "Predmet a popis sú povinné."), "danger")
+            return redirect(url_for("tutor.new_request"))
 
         data = {
             "requester_id": uid,
@@ -91,7 +100,7 @@ def new_request():
             "budget": budget
         }
         db.child("tutor_requests").push(data)
-        flash("Tutoring request created.", "success")
+        flash(tr("Tutoring request created.", "Žiadosť o doučovanie bola vytvorená."), "success")
         return redirect(url_for("tutor.requests_list"))
 
     return render_template("tutor_request_new.html")
@@ -103,13 +112,13 @@ def delete_offer(offer_id):
 
     offer = db.child("tutor_offers").child(offer_id).get().val()
     if not offer:
-        flash("Offer not found.", "error")
+        flash(tr("Offer not found.", "Ponuka sa nenašla."), "error")
         return redirect(url_for("tutor.my_offers"))
 
     if offer.get("owner_id") != current_uid:
-        flash("You are not allowed to delete this offer.", "error")
+        flash(tr("You are not allowed to delete this offer.", "Nemáte oprávnenie odstrániť túto ponuku."), "error")
         return redirect(url_for("tutor.my_offers"))
 
     db.child("tutor_offers").child(offer_id).remove()
-    flash("Offer deleted.", "success")
+    flash(tr("Offer deleted.", "Ponuka bola odstránená."), "success")
     return redirect(url_for("tutor.my_offers"))

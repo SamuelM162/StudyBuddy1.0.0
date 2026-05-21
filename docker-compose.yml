@@ -1,9 +1,9 @@
 services:
-  studybuddy:
-    container_name: studybuddy
+  studypeer:
+    container_name: studypeer
     build: .
     ports:
-      - "5001:5000"
+      - "5001:5001"
     env_file:
       - .env
     volumes:
@@ -12,5 +12,5 @@ services:
       FLASK_ENV: development
       FLASK_DEBUG: "1"
       WATCHFILES_FORCE_POLLING: "true"
-    command: flask --app run.py run --host=0.0.0.0 --port=5000 --reload
+    command: sh -c 'flask --app run.py run --host=0.0.0.0 --port=$${PORT:-5001} --reload'
     restart: unless-stopped

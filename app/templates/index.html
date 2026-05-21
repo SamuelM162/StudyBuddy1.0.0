@@ -1,32 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="sb-card p-4 p-md-5 mt-4 text-center">
-      <h1 class="mb-3">StudyBuddy</h1>
+<section class="sb-hero">
+  <div class="sb-hero-panel">
+    <div class="sb-hero-copy">
+      <span class="sb-eyebrow">{{ tr("Student platform", "Študentská platforma") }}</span>
+      <h1>StudyPeer</h1>
       <p class="lead mb-4">
-        Social network for students: study partners, tutoring, ride sharing and chat – all in one app.
+        {{ tr("A modern student network for study partners, tutoring, ride sharing, and simple conversations across your campus community.", "Moderná študentská sieť pre spolužiakov na učenie, doučovanie, spolujazdu a jednoduchú komunikáciu v tvojej kampusovej komunite.") }}
       </p>
-      <div class="d-flex flex-wrap justify-content-center gap-2">
-        <a href="{{ url_for('auth.signup') }}" class="btn sb-btn-primary btn-lg">Create account</a>
-        <a href="{{ url_for('auth.login') }}" class="btn sb-btn-outline btn-lg">Log in</a>
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('auth.signup') }}" class="btn sb-btn-primary btn-lg">{{ tr("Create account", "Vytvoriť účet") }}</a>
+        <a href="{{ url_for('auth.login') }}" class="btn sb-btn-outline btn-lg">{{ tr("Log in", "Prihlásiť sa") }}</a>
       </div>
-      <hr class="my-4">
-      <div class="row text-start">
-        <div class="col-md-4 mb-3">
-          <h5>🎓 Study matches</h5>
-          <p>Automatically connect with students learning the same subjects.</p>
+    </div>
+
+    <div class="sb-hero-visual">
+      <img
+        src="{{ url_for('static', filename='img/studypeer-logo-light.png') }}"
+        alt="StudyPeer"
+        class="sb-hero-logo sb-logo-light mb-4">
+      <img
+        src="{{ url_for('static', filename='img/studypeer-logo-dark.png') }}"
+        alt="StudyPeer"
+        class="sb-hero-logo sb-logo-dark mb-4">
+      <div class="sb-feature-grid">
+        <div class="sb-feature-card">
+          <h5>{{ tr("Study matches", "Študijné zhody") }}</h5>
+          <p>{{ tr("Find students learning the same subjects.", "Nájdi študentov, ktorí študujú rovnaké predmety.") }}</p>
         </div>
-        <div class="col-md-4 mb-3">
-          <h5>📚 Tutoring</h5>
-          <p>Offer paid tutoring or request help when you need it.</p>
+        <div class="sb-feature-card">
+          <h5>{{ tr("Tutoring", "Doučovanie") }}</h5>
+          <p>{{ tr("Offer help or request support.", "Ponúkni pomoc alebo požiadaj o podporu.") }}</p>
         </div>
-        <div class="col-md-4 mb-3">
-          <h5>🚗 Ride sharing</h5>
-          <p>Share rides between campus, dorms and your city and split costs.</p>
+        <div class="sb-feature-card">
+          <h5>{{ tr("Rides", "Jazdy") }}</h5>
+          <p>{{ tr("Coordinate campus travel together.", "Dohodni si cestovanie na kampus spoločne.") }}</p>
         </div>
       </div>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}

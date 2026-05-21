@@ -1,9 +1,32 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark">
+<html lang="{{ current_language }}" data-bs-theme="light">
   <head>
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("sb-theme") || "light";
+          document.documentElement.setAttribute("data-bs-theme", theme === "dark" ? "dark" : "light");
+        } catch (_) {
+          document.documentElement.setAttribute("data-bs-theme", "light");
+        }
+      })();
+    </script>
     <script>
       // Firebase Web config injected by Flask (available on every page)
       window.FIREBASE_CONFIG = {{ firebase_config | tojson }};
+      window.STUDYPEER_I18N = {{ {
+        "aiError": tr("Error talking to AI.", "Chyba pri komunikácii s AI."),
+        "aiGreeting": tr("Hi! I'm your StudyPeer assistant. Ask me about studying or how to use the app.", "Ahoj, som tvoj StudyPeer asistent. Spýtaj sa ma na štúdium alebo na používanie aplikácie."),
+        "aiInputPlaceholder": tr("Type your question...", "Napíš svoju otázku..."),
+        "block": tr("Block", "Blokovať"),
+        "delivered": tr("Delivered", "Doručené"),
+        "noReply": tr("(no reply)", "(bez odpovede)"),
+        "seen": tr("Seen", "Prečítané"),
+        "theme": tr("Theme", "Téma"),
+        "typing": tr("is typing...", "práve píše..."),
+        "unblock": tr("Unblock", "Odblokovať"),
+        "you": tr("You", "Vy")
+      } | tojson }};
 
       // Backward/forward compatible aliases (some pages used different names)
       window.firebaseConfig = window.FIREBASE_CONFIG;
@@ -18,8 +41,9 @@
       }
     </script>
     <meta charset="utf-8">
-    <title>StudyBuddy</title>
+    <title>StudyPeer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/studypeer-favicon.png') }}">
 
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -27,76 +51,183 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   </head>
   <body class="sb-body">
-    <nav class="navbar navbar-dark sb-navbar fixed-top">
+    <nav class="navbar sb-navbar fixed-top">
       <div class="container-fluid">
 
-        <!-- Brand -->
         <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('main.index') }}">
           <span class="navbar-brand-icon me-2">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M2 9L12 4L22 9L12 14L2 9Z" stroke="currentColor" stroke-width="2"/>
-              <path d="M6 11V16C6 16 8.5 18 12 18C15.5 18 18 16 18 16V11" stroke="currentColor" stroke-width="2"/>
-            </svg>
+            <img
+              src="{{ url_for('static', filename='img/studypeer-logo-light.png') }}"
+              alt="StudyPeer"
+              class="sb-brand-logo sb-logo-light">
+            <img
+              src="{{ url_for('static', filename='img/studypeer-logo-dark.png') }}"
+              alt="StudyPeer"
+              class="sb-brand-logo sb-logo-dark">
           </span>
-          StudyBuddy
         </a>
 
-        <!-- Inline nav links (desktop only) -->
-        <ul class="navbar-nav flex-row gap-3 d-none d-lg-flex">
+        <ul id="sbInlineLinks" class="navbar-nav flex-row gap-1 d-none d-xl-flex">
           {% if session.get('user_id') %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('social.suggestions') }}">Study matches</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('tutor.offers_list') }}">Tutoring</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('rides.rides_list') }}">Ride sharing</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('chat.inbox') }}">Messages</a></li>
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('social.search_users') }}">Search</a></li>
+            <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'main.dashboard' else '' }}" href="{{ url_for('main.dashboard') }}">{{ tr("Dashboard", "Nástenka") }}</a></li>
+            <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'social.suggestions' else '' }}" href="{{ url_for('social.suggestions') }}">{{ tr("Study matches", "Študijné zhody") }}</a></li>
+            <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'social.institution_view' else '' }}" href="{{ url_for('social.institution_view') }}">{{ tr("Institution", "Inštitúcia") }}</a></li>
+            <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('forum.') else '' }}" href="{{ url_for('forum.forum_home') }}">{{ tr("Forum", "Fórum") }}</a></li>
+            <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('tutor.') else '' }}" href="{{ url_for('tutor.offers_list') }}">{{ tr("Tutoring", "Doučovanie") }}</a></li>
+            <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('rides.') else '' }}" href="{{ url_for('rides.rides_list') }}">{{ tr("Rides", "Jazdy") }}</a></li>
+            <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('chat.') else '' }}" href="{{ url_for('chat.inbox') }}">{{ tr("Messages", "Správy") }}</a></li>
+            <li class="nav-item"><a class="nav-link {{ 'active' if request.endpoint == 'social.search_users' else '' }}" href="{{ url_for('social.search_users') }}">{{ tr("Search", "Hľadať") }}</a></li>
           {% endif %}
         </ul>
 
-        <!-- Hamburger (ALWAYS visible) -->
-        <button class="navbar-toggler ms-auto"
+        <div class="sb-language-switch d-flex align-items-center gap-1 ms-auto me-2">
+          <form method="post" action="{{ url_for('main.change_language', language='sk') }}" class="mb-0">
+            {{ csrf_input()|safe }}
+            <input type="hidden" name="next" value="{{ request_path_with_query }}">
+            <button type="submit"
+                    class="btn btn-sm {{ 'sb-btn-primary' if current_language == 'sk' else 'sb-btn-outline' }}">
+              SK
+            </button>
+          </form>
+          <form method="post" action="{{ url_for('main.change_language', language='en') }}" class="mb-0">
+            {{ csrf_input()|safe }}
+            <input type="hidden" name="next" value="{{ request_path_with_query }}">
+            <button type="submit"
+                    class="btn btn-sm {{ 'sb-btn-primary' if current_language == 'en' else 'sb-btn-outline' }}">
+              EN
+            </button>
+          </form>
+        </div>
+
+        {% if not session.get('user_id') %}
+          <div class="d-none d-sm-flex align-items-center gap-2">
+            <a class="btn btn-sm sb-btn-outline" href="{{ url_for('auth.login') }}">{{ tr("Log in", "Prihlásiť sa") }}</a>
+            <a class="btn btn-sm sb-btn-primary" href="{{ url_for('auth.signup') }}">{{ tr("Sign up", "Registrovať sa") }}</a>
+          </div>
+        {% endif %}
+
+        <button class="navbar-toggler d-xl-none"
                 type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#sbHamburger"
                 aria-expanded="false"
-                aria-label="Menu">
+                aria-label="{{ tr('Menu', 'Menu') }}">
           <span class="navbar-toggler-icon"></span>
         </button>
 
       </div>
 
-      <!-- Hamburger content -->
-      <div class="collapse sb-hamburger" id="sbHamburger">
-        <ul class="navbar-nav px-3 pt-3">
+      <div class="collapse sb-hamburger d-xl-none" id="sbHamburger">
+        <div class="sb-hamburger-panel">
+          <ul id="sbMenuLinks" class="navbar-nav sb-mobile-nav-list">
+            {% if session.get('user_id') %}
+              <li class="nav-item">
+                <a class="nav-link {{ 'active' if request.endpoint == 'main.dashboard' else '' }}" href="{{ url_for('main.dashboard') }}">
+                  <span class="sb-ico" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M3 11.5 12 4l9 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M5 10.5V20h5v-5h4v5h5v-9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <span>{{ tr("Dashboard", "Nástenka") }}</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {{ 'active' if request.endpoint == 'social.suggestions' else '' }}" href="{{ url_for('social.suggestions') }}">
+                  <span class="sb-ico" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="m17 11 2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <span>{{ tr("Study matches", "Študijné zhody") }}</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {{ 'active' if request.endpoint == 'social.institution_view' else '' }}" href="{{ url_for('social.institution_view') }}">
+                  <span class="sb-ico" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 21h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M6 21V9l6-4 6 4v12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                      <path d="M9 21v-5h6v5M9 12h.01M12 12h.01M15 12h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                  <span>{{ tr("Institution", "Inštitúcia") }}</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('forum.') else '' }}" href="{{ url_for('forum.forum_home') }}">
+                  <span class="sb-ico" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M8 8h8M8 12h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                  <span>{{ tr("Forum", "Fórum") }}</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('tutor.') else '' }}" href="{{ url_for('tutor.offers_list') }}">
+                  <span class="sb-ico" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="m22 10-10-5-10 5 10 5 10-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                      <path d="M6 12v5c3.5 2 8.5 2 12 0v-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <span>{{ tr("Tutoring", "Doučovanie") }}</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('rides.') else '' }}" href="{{ url_for('rides.rides_list') }}">
+                  <span class="sb-ico" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M5 17h14l-1.4-5.6A3 3 0 0 0 14.7 9H9.3a3 3 0 0 0-2.9 2.4L5 17Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                      <path d="M7 17v2M17 17v2M7 13h10M6 9l1-3h10l1 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                  <span>{{ tr("Ride sharing", "Spolujazda") }}</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('chat.') else '' }}" href="{{ url_for('chat.inbox') }}">
+                  <span class="sb-ico" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 5h16v11H7l-3 3V5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M8 9h8M8 13h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </span>
+                  <span>{{ tr("Messages", "Správy") }}</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {{ 'active' if request.endpoint == 'social.search_users' else '' }}" href="{{ url_for('social.search_users') }}">
+                  <span class="sb-ico" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="m21 21-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                  </span>
+                  <span>{{ tr("Search students", "Hľadať študentov") }}</span>
+                </a>
+              </li>
+            {% endif %}
+          </ul>
 
-          <!-- Nav links (mobile only) -->
-          {% if session.get('user_id') %}
-            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('social.suggestions') }}">Study matches</a></li>
-            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('tutor.offers_list') }}">Tutoring</a></li>
-            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('rides.rides_list') }}">Ride sharing</a></li>
-            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('chat.inbox') }}">Messages</a></li>
-            <li class="nav-item d-lg-none"><a class="nav-link" href="{{ url_for('social.search_users') }}">Search</a></li>
-            <hr>
-          {% endif %}
-
-          <!-- Actions -->
-          <li class="nav-item d-flex flex-column align-items-start gap-3 mt-3">
-
-            <!-- Theme toggle -->
+          <div class="sb-mobile-nav-section">
             <button id="themeToggle"
-                    class="btn btn-sm sb-menu-item d-flex align-items-center gap-2">
+                    class="sb-menu-item">
               <span class="sb-ico" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </span>
-              <span class="small">Theme</span>
+              <span>{{ tr("Theme", "Téma") }}</span>
             </button>
 
             {% if session.get('user_id') %}
 
-              <a class="nav-link d-flex align-items-center gap-2 p-0"
+              <a class="nav-link"
                  href="{{ url_for('profile.edit_profile') }}">
                 <span class="sb-ico" aria-hidden="true">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -104,10 +235,10 @@
                     <path d="M12 13a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </span>
-                <span class="small">Profile</span>
+                <span>{{ tr("Profile", "Profil") }}</span>
               </a>
 
-              <a class="nav-link d-flex align-items-center gap-2 p-0"
+              <a class="nav-link"
                  href="{{ url_for('social.friends_list') }}">
                 <span class="sb-ico" aria-hidden="true">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -117,10 +248,10 @@
                     <path d="M16.5 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </span>
-                <span class="small">Friends</span>
+                <span>{{ tr("Friends", "Priatelia") }}</span>
               </a>
 
-              <a class="btn btn-sm btn-primary mt-2 d-flex align-items-center gap-2"
+              <a class="nav-link sb-menu-logout"
                  href="{{ url_for('auth.logout') }}">
                 <span class="sb-ico" aria-hidden="true">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -129,12 +260,12 @@
                     <path d="M21 12H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </span>
-                <span>Logout</span>
+                <span>{{ tr("Logout", "Odhlásiť sa") }}</span>
               </a>
 
             {% else %}
 
-              <a class="btn btn-sm btn-outline-light d-flex align-items-center gap-2"
+              <a class="btn btn-sm sb-btn-outline justify-content-start d-sm-none"
                  href="{{ url_for('auth.login') }}">
                 <span class="sb-ico" aria-hidden="true">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -143,10 +274,10 @@
                     <path d="M21 21V3a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </span>
-                <span>Login</span>
+                <span>{{ tr("Login", "Prihlásiť sa") }}</span>
               </a>
 
-              <a class="btn btn-sm btn-primary d-flex align-items-center gap-2"
+              <a class="btn btn-sm sb-btn-primary justify-content-start d-sm-none"
                  href="{{ url_for('auth.signup') }}">
                 <span class="sb-ico" aria-hidden="true">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -156,23 +287,25 @@
                     <path d="M22 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                   </svg>
                 </span>
-                <span>Sign up</span>
+                <span>{{ tr("Sign up", "Registrovať sa") }}</span>
               </a>
 
             {% endif %}
-          </li>
-        </ul>
+          </div>
+        </div>
       </div>
     </nav>
 
     <main class="sb-main container">
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-          {% for category, msg in messages %}
-            <div class="alert alert-{{ category if category!='message' else 'info' }} mt-2">
-              {{ msg }}
-            </div>
-          {% endfor %}
+          <div class="sb-alert-stack">
+            {% for category, msg in messages %}
+              <div class="alert alert-{{ category if category!='message' else 'info' }} mb-0" role="alert">
+                {{ msg }}
+              </div>
+            {% endfor %}
+          </div>
         {% endif %}
       {% endwith %}
 
@@ -183,7 +316,7 @@
     <!-- Floating AI chat widget (hidden by default, opened via bubble) -->
     <div id="ai-widget" class="sb-ai-widget is-hidden">
       <div class="sb-ai-header d-flex justify-content-between align-items-center">
-        <span>StudyBuddy AI</span>
+        <span>StudyPeer AI</span>
         <div class="d-flex align-items-center gap-1">
           <button class="btn btn-sm btn-link text-light p-0" id="ai-toggle">–</button>
         </div>
@@ -191,12 +324,12 @@
 
       <div id="ai-messages" class="sb-ai-messages">
         <div class="sb-ai-message sb-ai-message-bot">
-          Hi! I'm your StudyBuddy assistant. Ask me about studying or how to use the app.
+          {{ tr("Hi! I'm your StudyPeer assistant. Ask me about studying or how to use the app.", "Ahoj, som tvoj StudyPeer asistent. Spýtaj sa ma na štúdium alebo na používanie aplikácie.") }}
         </div>
       </div>
 
       <form id="ai-form" class="sb-ai-form">
-        <input type="text" id="ai-input" class="form-control form-control-sm" placeholder="Type your question..." autocomplete="off">
+        <input type="text" id="ai-input" class="form-control form-control-sm" placeholder="{{ tr('Type your question...', 'Napíš svoju otázku...') }}" autocomplete="off">
       </form>
     </div>
 
@@ -205,14 +338,13 @@
       id="ai-bubble"
       type="button"
       class="sb-ai-bubble"
-      aria-label="Open StudyBuddy AI chat"
+      aria-label="{{ tr('Open StudyPeer AI chat', 'Otvoriť StudyPeer AI chat') }}"
     >
       <span class="sb-ai-bubble-icon">🤖</span>
     </button>
     {% endif %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>
 </html>

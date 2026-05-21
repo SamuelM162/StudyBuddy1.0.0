@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row mt-3 justify-content-center">
-  <div class="col-lg-7">
-    <div class="sb-card p-4">
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="sb-card p-4 p-md-5">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <div class="d-flex align-items-center">
           <div class="sb-avatar me-3">
@@ -10,17 +10,17 @@
           </div>
           <div>
             <div class="fw-semibold">{{ other_name }}</div>
-            <div class="small text-muted">Chat</div>
+            <div class="small text-muted">{{ tr("Chat", "Chat") }}</div>
           </div>
         </div>
 
         <div class="d-flex align-items-center gap-2">
           <button
             type="button"
-            class="btn sb-btn-secondary sb-block-btn {% if i_blocked %}is-blocked{% endif %}"
+            class="btn btn-sm sb-btn-secondary sb-block-btn {% if i_blocked %}is-blocked{% endif %}"
             data-uid="{{ other_uid }}"
             aria-pressed="{% if i_blocked %}true{% else %}false{% endif %}">
-            {% if i_blocked %}Unblock{% else %}Block{% endif %}
+            {% if i_blocked %}{{ tr("Unblock", "Odblokovať") }}{% else %}{{ tr("Block", "Blokovať") }}{% endif %}
           </button>
         </div>
       </div>
@@ -33,12 +33,15 @@
                   {{ m.text }}
                 </div>
                 <div class="small text-muted">
-                  {% if m.sender_id == current_user_id %}You{% else %}{{ m.sender_email }}{% endif %}
+                  {% if m.sender_id == current_user_id %}{{ tr("You", "Vy") }}{% else %}{{ m.sender_email }}{% endif %}
                 </div>
             </div>
             {% endfor %}
           {% else %}
-            <p class="text-muted">No messages yet.</p>
+            <div class="sb-empty-state sb-chat-empty">
+              <h5>{{ tr("No messages yet", "Zatiaľ žiadne správy") }}</h5>
+              <p class="text-muted mb-0">{{ tr("Send the first message to start the conversation.", "Pošli prvú správu a začni konverzáciu.") }}</p>
+            </div>
           {% endif %}
         </div>
       </div>
@@ -54,15 +57,16 @@
            data-last-read-other="{{ last_read_other or '' }}"
            {% if not ns.last_outgoing_ts %}style="display:none;"{% endif %}>
         {% if last_read_other and ns.last_outgoing_ts and last_read_other >= ns.last_outgoing_ts %}
-          <span class="status seen">Seen ✓✓</span>
+          <span class="status seen">{{ tr("Seen", "Prečítané") }} ✓✓</span>
         {% else %}
-          <span class="status delivered">Delivered ✓</span>
+          <span class="status delivered">{{ tr("Delivered", "Doručené") }} ✓</span>
         {% endif %}
       </div>
       <form method="post" id="chat-form">
+        {{ csrf_input()|safe }}
         <div class="input-group">
-          <input id="chat-input" type="text" name="text" class="form-control" placeholder="Type a message..." required autocomplete="off" autocapitalize="off" spellcheck="false">
-          <button type="submit" class="btn sb-btn-primary">Send</button>
+          <input id="chat-input" type="text" name="text" class="form-control" placeholder="{{ tr('Type a message...', 'Napíšte správu...') }}" required autocomplete="off" autocapitalize="off" spellcheck="false">
+          <button type="submit" class="btn sb-btn-primary">{{ tr("Send", "Odoslať") }}</button>
         </div>
       </form>
     </div>
@@ -72,6 +76,7 @@
 (function(){
   const otherUid = {{ other_uid|tojson }};
   const otherName = {{ other_name|tojson }};
+  const i18n = window.STUDYPEER_I18N || {};
   const statusEl = document.getElementById('msg-status');
 
   // Keep Block/Unblock label correct after navigation/back/tab switching.
@@ -92,29 +97,17 @@
 
       if(j.blocked){
         btn.classList.add('is-blocked');
-        btn.textContent = 'Unblock';
+        btn.textContent = i18n.unblock || 'Unblock';
         btn.setAttribute('aria-pressed','true');
       }else{
         btn.classList.remove('is-blocked');
-        btn.textContent = 'Block';
+        btn.textContent = i18n.block || 'Block';
         btn.setAttribute('aria-pressed','false');
       }
     }catch(e){}
   }
   // Always refresh block button status on dom load
   document.addEventListener('DOMContentLoaded', refreshBlockButton);
-  // Add global event handler for block/unblock button
-  const blockBtn = document.querySelector('.sb-block-btn');
-  if(blockBtn){
-    blockBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const uid = blockBtn.dataset.uid;
-      const r = await fetch(`/social/api/block/${uid}`, { method: 'POST' });
-      if(r.ok){
-        refreshBlockButton();
-      }
-    });
-  }
   // Re-sync after tab switching / BFCache restore / returning to this page
   window.addEventListener('pageshow', () => {
     // pageshow also fires when coming back from browser back-forward cache
@@ -283,7 +276,11 @@
 
       try{
         const body = new URLSearchParams();
+        const csrfInput = form.querySelector('input[name="_csrf_token"]');
         body.set('text', text);
+        if(csrfInput && csrfInput.value){
+          body.set('_csrf_token', csrfInput.value);
+        }
 
         const r = await fetch(window.location.pathname, {
           method: 'POST',
@@ -332,7 +329,7 @@
       if(show){
         isOtherTyping = true;
         statusEl.style.display = 'block';
-        statusEl.innerHTML = `<span class="status typing">${escapeHtml(otherName || 'User')} is typing...</span>`;
+        statusEl.innerHTML = `<span class="status typing">${escapeHtml(otherName || 'User')} ${escapeHtml(i18n.typing || 'is typing...')}</span>`;
         scrollToBottom(false);
         return;
       }
@@ -394,7 +391,7 @@
       <div class="mb-2 ${mine ? 'sb-message-me' : 'sb-message-other'}">
         <div class="sb-bubble">${escapeHtml(m.text || '')}</div>
         <div class="small text-muted">
-${mine ? 'You' : escapeHtml(m.sender_email || '')}
+${mine ? escapeHtml(i18n.you || 'You') : escapeHtml(m.sender_email || '')}
         </div>
       </div>
     `;
@@ -428,6 +425,10 @@ ${mine ? 'You' : escapeHtml(m.sender_email || '')}
       scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 40;
 
     // appendni len nové správy (tail)
+    const emptyState = box.querySelector('.sb-chat-empty');
+    if(emptyState){
+      emptyState.remove();
+    }
     let html = '';
     for(let i = renderedCount; i < msgs.length; i++){
       html += makeMessageHtml(msgs[i], me);
@@ -466,9 +467,9 @@ ${mine ? 'You' : escapeHtml(m.sender_email || '')}
 
       statusEl.style.display = 'block';
       if(isoGE(lastReadOther, lastOutgoingTs)){
-        statusEl.innerHTML = '<span class="status seen">Seen ✓✓</span>';
+        statusEl.innerHTML = `<span class="status seen">${escapeHtml(i18n.seen || 'Seen')} ✓✓</span>`;
       }else{
-        statusEl.innerHTML = '<span class="status delivered">Delivered ✓</span>';
+        statusEl.innerHTML = `<span class="status delivered">${escapeHtml(i18n.delivered || 'Delivered')} ✓</span>`;
       }
       lastStatusHtml = statusEl.innerHTML;
     }catch(e){}

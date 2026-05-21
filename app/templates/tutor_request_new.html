@@ -2,22 +2,29 @@
 {% block content %}
 <div class="row justify-content-center">
   <div class="col-lg-6">
-    <div class="sb-card p-4 mt-3">
-      <h3 class="mb-3">New tutoring request</h3>
+    <div class="sb-card p-4 p-md-5">
+      <div class="sb-section-heading mb-4">
+        <span class="sb-eyebrow">{{ tr("Tutoring", "Doučovanie") }}</span>
+        <h2 class="mb-2">{{ tr("New tutoring request", "Nová žiadosť o doučovanie") }}</h2>
+        <p class="text-muted mb-0">{{ tr("Explain the subject, context, and what kind of help would be useful.", "Vysvetli predmet, kontext a aký typ pomoci by bol užitočný.") }}</p>
+      </div>
       <form method="post">
+        {{ csrf_input()|safe }}
         <div class="mb-3">
-          <label class="form-label">Subject / course</label>
+          <label class="form-label">{{ tr("Subject / course", "Predmet / kurz") }}</label>
           <input type="text" name="subject" class="form-control" required>
         </div>
         <div class="mb-3">
-          <label class="form-label">What do you need help with?</label>
+          <label class="form-label">{{ tr("What do you need help with?", "S čím potrebujete pomôcť?") }}</label>
           <textarea name="description" rows="3" class="form-control" required></textarea>
         </div>
         <div class="mb-3">
-          <label class="form-label">Budget (optional)</label>
-          <input type="text" name="budget" class="form-control" placeholder="e.g. 10 EUR / hour">
+          <label class="form-label">{{ tr("Budget (optional)", "Rozpočet (voliteľné)") }}</label>
+          <input type="text" name="budget" class="form-control" placeholder="{{ tr('e.g. 10 EUR / hour', 'napr. 10 EUR / hodina') }}">
         </div>
-        <button type="submit" class="btn sb-btn-primary">Publish request</button>
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn sb-btn-primary">{{ tr("Publish request", "Zverejniť žiadosť") }}</button>
+        </div>
       </form>
     </div>
   </div>

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, session, jsonify, redirect, url_for
 from firebase_admin import db as admin_db
-from app.utils import login_required
+from app.utils import login_required, normalize_text
 from datetime import datetime
 
 chat_bp = Blueprint("chat", __name__, url_prefix="/chat")
@@ -8,6 +8,26 @@ chat_bp = Blueprint("chat", __name__, url_prefix="/chat")
 
 def make_thread_id(uid1, uid2):
     return "_".join(sorted([uid1, uid2]))
+
+
+def ensure_thread_refs(uid1: str, uid2: str, thread_id: str):
+    """Make a conversation visible in both users' inboxes."""
+    admin_db.reference(f"user_threads/{uid1}/{uid2}").set({"thread_id": thread_id})
+    admin_db.reference(f"user_threads/{uid2}/{uid1}").set({"thread_id": thread_id})
+
+
+def repair_missing_thread_refs(uid: str, users: dict, all_messages: dict | None = None):
+    """Backfill inbox refs for existing message threads created before dual writes."""
+    try:
+        all_messages = all_messages if isinstance(all_messages, dict) else admin_db.reference("messages").get() or {}
+        for other_uid in (users or {}).keys():
+            if other_uid == uid:
+                continue
+            thread_id = make_thread_id(uid, other_uid)
+            if all_messages.get(thread_id):
+                admin_db.reference(f"user_threads/{uid}/{other_uid}").set({"thread_id": thread_id})
+    except Exception:
+        pass
 
 
 def update_last_seen(uid: str):
@@ -29,6 +49,11 @@ def inbox():
     user_threads = admin_db.reference(f"user_threads/{uid}").get() or {}
     users = admin_db.reference("users").get() or {}
     presence = admin_db.reference("presence").get() or {}
+    all_messages = admin_db.reference("messages").get() or {}
+
+    repair_missing_thread_refs(uid, users, all_messages)
+    user_threads = admin_db.reference(f"user_threads/{uid}").get() or {}
+    last_read_by_thread = admin_db.reference("last_read").get() or {}
 
     threads = []
 
@@ -43,7 +68,7 @@ def inbox():
         other_name = user.get("display_name") or user.get("email") or other_uid
 
         # správy v threade
-        msgs_data = admin_db.reference(f"messages/{thread_id}").get() or {}
+        msgs_data = all_messages.get(thread_id) or {}
         msgs_list = list((msgs_data or {}).values())
         msgs_list.sort(key=lambda m: m.get("timestamp") or "")
 
@@ -53,7 +78,7 @@ def inbox():
         last_sender = last.get("sender_id")
 
         # unread count pre aktuálneho usera
-        last_read_ts = admin_db.reference(f"last_read/{thread_id}/{uid}").get()
+        last_read_ts = (last_read_by_thread.get(thread_id) or {}).get(uid)
         unread_count = 0
         if msgs_list:
             for m in msgs_list:
@@ -114,24 +139,24 @@ def thread(other_uid):
     if request.method == "POST":
         if blocked_me or i_blocked:
             return redirect(url_for("chat.thread", other_uid=other_uid))
-        text = request.form.get("text")
+        text = normalize_text(request.form.get("text"), 1000)
         if text:
             msg = {
                 "sender_id": my_id,
+                "recipient_id": other_uid,
                 "sender_email": my_email,
                 "text": text,
                 "timestamp": datetime.utcnow().isoformat(),
             }
             admin_db.reference(f"messages/{thread_id}").push(msg)
             admin_db.reference(f"last_read/{thread_id}/{my_id}").set(msg["timestamp"])
+            try:
+                ensure_thread_refs(my_id, other_uid, thread_id)
+            except Exception:
+                pass
             # stop typing indicator for sender
             try:
                 admin_db.reference(f"typing/{thread_id}/{my_id}").delete()
-            except Exception:
-                pass
-            # Only write under my own UID.
-            try:
-                admin_db.reference(f"user_threads/{my_id}/{other_uid}").set({"thread_id": thread_id})
             except Exception:
                 pass
         return redirect(url_for("chat.thread", other_uid=other_uid))
@@ -185,6 +210,7 @@ def api_messages(other_uid):
         messages.append(
             {
                 "sender_id": m.get("sender_id"),
+                "recipient_id": m.get("recipient_id"),
                 "sender_email": m.get("sender_email"),
                 "text": m.get("text"),
                 "timestamp": m.get("timestamp"),

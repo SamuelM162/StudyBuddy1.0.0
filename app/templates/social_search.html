@@ -1,56 +1,73 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row mt-3">
+<div class="row">
   <div class="col-lg-8">
-    <div class="sb-card p-4">
-      <h3 class="mb-3">Search students</h3>
+    <div class="sb-card p-4 p-md-5">
+      <div class="sb-section-heading mb-4">
+        <span class="sb-eyebrow">{{ tr("Community", "Komunita") }}</span>
+        <h2 class="mb-2">{{ tr("Search students", "Hľadať študentov") }}</h2>
+        <p class="text-muted mb-0">{{ tr("Search by name, faculty, university, or study interests.", "Vyhľadávaj podľa mena, fakulty, univerzity alebo študijných záujmov.") }}</p>
+      </div>
       <form method="get" class="row g-2 mb-3">
         <div class="col-9 col-md-10">
-          <input type="text" class="form-control" name="q" placeholder="Name, faculty or subject"
+          <input type="text" class="form-control" name="q" placeholder="{{ tr('Name, faculty, university or subject', 'Meno, fakulta, univerzita alebo predmet') }}"
                  value="{{ query }}">
         </div>
         <div class="col-3 col-md-2">
-          <button type="submit" class="btn sb-btn-primary w-100">Search</button>
+          <button type="submit" class="btn sb-btn-primary w-100">{{ tr("Search", "Hľadať") }}</button>
         </div>
       </form>
 
       {% if results %}
         {% for u in results %}
-          <div class="card sb-subcard mb-2" style="padding: 0.6rem 0.8rem; max-width: 550px; margin-left: 0;">
-            <div class="card-body p-2">
-              <div class="mb-2">
+          <div class="sb-user-card mb-3">
+            <div class="sb-user-card-main">
+              {% if u.photo_url %}
+                <img src="{{ u.photo_url }}" alt="{{ u.display_name }}" class="sb-user-photo">
+              {% else %}
+                <div class="sb-user-photo sb-user-photo-fallback">{{ (u.display_name or u.email or '?')[0]|upper }}</div>
+              {% endif %}
+              <div class="flex-grow-1">
                 <h6 class="mb-1">{{ u.display_name or u.email }}</h6>
-                {% if u.faculty %}
-                  <div class="small text-muted">{{ u.faculty }}</div>
-                {% endif %}
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                  {% if u.university %}<span class="badge sb-badge-soft">{{ u.university }}</span>{% endif %}
+                  {% if u.faculty %}<span class="badge sb-badge-soft">{{ u.faculty }}</span>{% endif %}
+                </div>
+                {% if u.bio %}<p class="small text-muted mb-2">{{ u.bio }}</p>{% endif %}
                 {% if u.interests %}
                   <div class="small mt-1">
-                    {% for i in u.interests %}
-                      <span class="badge bg-secondary me-1">{{ i }}</span>
+                    {% for i in u.interests[:5] %}
+                      <span class="badge sb-badge-soft me-1">{{ i }}</span>
                     {% endfor %}
                   </div>
                 {% endif %}
               </div>
+            </div>
 
-              <div class="d-flex align-items-center gap-2 flex-wrap">
-                <a href="{{ url_for('profile.view_profile', uid=u.uid) }}" class="btn btn-sm sb-btn-outline">View</a>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <a href="{{ url_for('profile.view_profile', uid=u.uid) }}" class="btn btn-sm sb-btn-outline">{{ tr("View", "Zobraziť") }}</a>
 
-                {% set rel = u.get('relation') if u is mapping else u.relation %}
-                {% if not rel %}{% set rel = 'none' %}{% endif %}
+              {% set rel = u.get('relation') if u is mapping else u.relation %}
+              {% if not rel %}{% set rel = 'none' %}{% endif %}
 
-                {% if rel == 'friend' %}
-                  <span class="badge bg-success">Friend</span>
-                {% elif rel == 'pending' %}
-                  <button type="button" class="btn btn-sm sb-btn-outline" disabled>Requested</button>
-                {% else %}
-                  <a href="{{ url_for('social.send_request', target_uid=u.uid) }}" class="btn btn-sm sb-btn-primary">Add friend</a>
-                {% endif %}
-              </div>
+              {% if rel == 'friend' %}
+                <span class="badge bg-success">{{ tr("Friend", "Priateľ") }}</span>
+              {% elif rel == 'pending' %}
+                <button type="button" class="btn btn-sm sb-btn-outline" disabled>{{ tr("Pending", "Čaká") }}</button>
+              {% else %}
+                <form method="post" action="{{ url_for('social.send_request', target_uid=u.uid) }}" class="mb-0">
+                  {{ csrf_input()|safe }}
+                  <button type="submit" class="btn btn-sm sb-btn-primary">{{ tr("Add friend", "Pridať priateľa") }}</button>
+                </form>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
       {% else %}
-        <p class="text-muted">No results yet. Try another keyword.</p>
+        <div class="sb-empty-state">
+          <h5>{{ tr("No results yet", "Zatiaľ žiadne výsledky") }}</h5>
+          <p class="text-muted mb-0">{{ tr("Try another keyword or complete your profile to improve discovery.", "Skús iné kľúčové slovo alebo doplň svoj profil pre lepšie objavovanie.") }}</p>
+        </div>
       {% endif %}
     </div>
   </div>

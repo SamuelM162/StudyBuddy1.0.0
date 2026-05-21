@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session, current_app
+from flask import Blueprint, current_app, jsonify, request
 from app.utils import login_required
 from groq import Groq
 import os
@@ -17,7 +17,7 @@ def generate_ai_reply(message: str) -> str:
     """Real AI using LLaMA‑3‑70B via Groq."""
     client = get_groq_client()
     system_prompt = (
-        "You are StudyBuddy AI, a friendly assistant that helps students with learning, "
+        "You are StudyPeer AI, a friendly assistant that helps students with learning, "
         "explaining topics, exam preparation, motivation, time management, and university tasks. "
         "Keep answers clear, short and practical."
     )
@@ -38,11 +38,16 @@ def generate_ai_reply(message: str) -> str:
 @ai_bp.route("/chat", methods=["POST"])
 @login_required
 def ai_chat():
-    data = request.get_json() or {}
-    message = data.get("message", "").strip()
+    data = request.get_json(silent=True) or {}
+    message = (data.get("message") or "").strip()[:2000]
 
     if not message:
         return jsonify({"reply": "Please type a question about your studies."})
 
-    reply = generate_ai_reply(message)
+    try:
+        reply = generate_ai_reply(message)
+    except Exception:
+        current_app.logger.exception("AI chat request failed")
+        return jsonify({"reply": "StudyPeer AI is temporarily unavailable. Please try again in a moment."}), 503
+
     return jsonify({"reply": reply})

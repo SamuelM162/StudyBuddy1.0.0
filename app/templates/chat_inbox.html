@@ -1,15 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row mt-3">
-  <div class="col-lg-7">
-    <div class="sb-card p-4">
-      <h3 class="mb-3">Messages</h3>
+<div class="row">
+  <div class="col-lg-8">
+    <div class="sb-card p-4 p-md-5">
+      <div class="sb-section-heading mb-4">
+        <span class="sb-eyebrow">{{ tr("Inbox", "Schránka") }}</span>
+        <h2 class="mb-2">{{ tr("Messages", "Správy") }}</h2>
+        <p class="text-muted mb-0">{{ tr("Keep conversations with friends, tutors, and classmates in one place.", "Maj konverzácie s priateľmi, doučovateľmi a spolužiakmi na jednom mieste.") }}</p>
+      </div>
       {% if threads %}
-        <ul class="list-group list-group-flush">
+        <ul class="sb-list">
           {% for t in threads %}
-          <li class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center">
+          <li class="sb-list-item">
 
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center sb-list-item-main">
               <div class="sb-avatar me-2">
                 {{ (t.other_name or t.other_uid)[0]|upper }}
               </div>
@@ -17,7 +21,7 @@
                 <div class="fw-semibold d-flex align-items-center">
                   {{ t.other_name or t.other_uid }}
                   {% if t.is_online %}
-                    <span class="sb-status-dot ms-2" title="Online"></span>
+                    <span class="sb-status-dot ms-2" title="{{ tr('Online', 'Online') }}"></span>
                   {% endif %}
                 </div>
 
@@ -29,22 +33,23 @@
               </div>
             </div>
 
-            <div class="d-flex align-items-center">
+            <div class="sb-list-actions">
               {% if t.unread_count and t.unread_count > 0 %}
-                <span class="sb-unread-badge me-2">{{ t.unread_count }}</span>
+                <span class="sb-unread-badge">{{ t.unread_count }}</span>
               {% endif %}
               <form method="post"
                     action="{{ url_for('chat.delete_thread', other_uid=t.other_uid) }}"
-                    class="me-2 mb-0">
+                    class="mb-0">
+                {{ csrf_input()|safe }}
                 <button type="submit"
                         class="btn btn-sm btn-outline-danger"
-                        title="Remove this conversation from your inbox">
-                  Delete
+                        title="{{ tr('Remove this conversation from your inbox', 'Odstrániť túto konverzáciu z vašej schránky') }}">
+                  {{ tr("Delete", "Odstrániť") }}
                 </button>
               </form>
               <a href="{{ url_for('chat.thread', other_uid=t.other_uid) }}"
                  class="btn btn-sm sb-btn-primary">
-                Open chat
+                {{ tr("Open chat", "Otvoriť chat") }}
               </a>
             </div>
 
@@ -52,7 +57,10 @@
           {% endfor %}
         </ul>
       {% else %}
-        <p class="text-muted mb-0">No conversations yet. Start by messaging a friend or tutor.</p>
+        <div class="sb-empty-state">
+          <h5>{{ tr("No conversations yet", "Zatiaľ nemáte žiadne konverzácie") }}</h5>
+          <p class="text-muted mb-0">{{ tr("Start by messaging a friend, study match, or tutor.", "Začni správou priateľovi, študijnej zhode alebo doučovateľovi.") }}</p>
+        </div>
       {% endif %}
     </div>
   </div>
