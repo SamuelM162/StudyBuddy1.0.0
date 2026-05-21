@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="sb-card p-4 p-md-5">
+      <div class="sb-page-title">
+        <div>
+          <span class="sb-eyebrow">{{ tr("Institution forum", "Fórum inštitúcie") }}</span>
+          <h2 class="mb-2">{{ tr("School discussions", "Školské diskusie") }}</h2>
+          {% if current_university %}
+            <p class="text-muted mb-0">{{ current_university }}</p>
+          {% else %}
+            <p class="text-muted mb-0">{{ tr("Set your university to join your local forum.", "Nastav si univerzitu, aby si sa pridal do lokálneho fóra.") }}</p>
+          {% endif %}
+        </div>
+        {% if not missing_university %}
+          <a href="{{ url_for('forum.new_thread') }}" class="btn sb-btn-primary btn-sm">{{ tr("New thread", "Nové vlákno") }}</a>
+        {% endif %}
+      </div>
+
+      {% if missing_university %}
+        <div class="sb-empty-state">
+          <h5>{{ tr("University not set", "Univerzita nie je nastavená") }}</h5>
+          <p class="text-muted">{{ tr("Choose your university in your profile and the forum will show discussions from your institution only.", "Vyber si univerzitu v profile a fórum zobrazí iba diskusie tvojej inštitúcie.") }}</p>
+          <a href="{{ url_for('profile.edit_profile') }}" class="btn sb-btn-primary">{{ tr("Open profile", "Otvoriť profil") }}</a>
+        </div>
+      {% else %}
+        <form method="get" class="sb-filter-bar mb-4">
+          <div>
+            <label for="forum-category" class="form-label">{{ tr("Category", "Kategória") }}</label>
+            <select id="forum-category" name="category" class="form-select">
+              <option value="all" {% if category == 'all' %}selected{% endif %}>{{ tr("All categories", "Všetky kategórie") }}</option>
+              {% for key, en_label, sk_label in categories %}
+                <option value="{{ key }}" {% if category == key %}selected{% endif %}>{{ tr(en_label, sk_label) }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="forum-sort" class="form-label">{{ tr("Sort", "Zoradiť") }}</label>
+            <select id="forum-sort" name="sort" class="form-select">
+              <option value="new" {% if sort == 'new' %}selected{% endif %}>{{ tr("Newest", "Najnovšie") }}</option>
+              <option value="active" {% if sort == 'active' %}selected{% endif %}>{{ tr("Active", "Aktívne") }}</option>
+              <option value="top" {% if sort == 'top' %}selected{% endif %}>{{ tr("Top", "Najlepšie") }}</option>
+            </select>
+          </div>
+          <div class="sb-filter-action">
+            <button type="submit" class="btn sb-btn-outline w-100">{{ tr("Apply", "Použiť") }}</button>
+          </div>
+        </form>
+
+        {% if threads %}
+          <div class="sb-forum-list">
+            {% for thread in threads %}
+              <a href="{{ url_for('forum.thread_detail', thread_id=thread.id) }}" class="sb-forum-thread">
+                <div class="sb-forum-score">
+                  <strong>{{ thread.score }}</strong>
+                  <span>{{ tr("votes", "hlasov") }}</span>
+                </div>
+                <div class="sb-forum-thread-main">
+                  <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                    <span class="badge sb-badge-soft">{{ thread.category_label }}</span>
+                    <span class="small text-muted">{{ tr("by", "od") }} {{ thread.author_name }}</span>
+                  </div>
+                  <h5 class="mb-1">{{ thread.title }}</h5>
+                  <p class="text-muted mb-2">{{ thread.body }}</p>
+                  <div class="small text-muted">
+                    {{ thread.comment_count }} {{ tr("comments", "komentárov") }} · {{ tr("updated", "upravené") }} {{ thread.updated_at_display }}
+                  </div>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="sb-empty-state">
+            <h5>{{ tr("No threads yet", "Zatiaľ tu nie sú vlákna") }}</h5>
+            <p class="text-muted mb-0">{{ tr("Start the first discussion for your institution.", "Začni prvú diskusiu pre svoju inštitúciu.") }}</p>
+          </div>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="sb-card p-4 h-100">
+      <h5>{{ tr("Use it for", "Na čo sa hodí") }}</h5>
+      <ul class="sb-clean-list small text-muted">
+        <li>{{ tr("Questions about courses, teachers, exams, deadlines, and school life.", "Otázky o predmetoch, vyučujúcich, skúškach, termínoch a živote v škole.") }}</li>
+        <li>{{ tr("Advice from students at the same institution.", "Rady od študentov z rovnakej inštitúcie.") }}</li>
+        <li>{{ tr("Threads stay visible to classmates from your university.", "Vlákna zostanú viditeľné spolužiakom z tvojej univerzity.") }}</li>
+      </ul>
+      {% if not missing_university %}
+        <a href="{{ url_for('forum.new_thread') }}" class="btn sb-btn-primary w-100 mt-3">{{ tr("Ask something", "Spýtať sa niečo") }}</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

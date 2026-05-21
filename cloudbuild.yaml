@@ -1,0 +1,48 @@
+substitutions:
+  _REGION: europe-west1
+  _SERVICE: studypeer
+  _REPOSITORY: studypeer
+  _IMAGE: studypeer
+  _SECRET_KEY_SECRET: studypeer-secret-key
+  _FIREBASE_ADMIN_SECRET: studypeer-firebase-admin-json
+  _FB_API_KEY: ""
+  _FB_AUTH_DOMAIN: ""
+  _FB_DB_URL: ""
+  _FB_PROJECT_ID: ""
+  _FB_STORAGE_BUCKET: ""
+  _FB_MSG_SENDER_ID: ""
+  _FB_APP_ID: ""
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA
+      - .
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA
+      - --region
+      - ${_REGION}
+      - --platform
+      - managed
+      - --allow-unauthenticated
+      - --set-secrets
+      - SECRET_KEY=${_SECRET_KEY_SECRET}:latest,FIREBASE_ADMIN_JSON=${_FIREBASE_ADMIN_SECRET}:latest
+      - --set-env-vars
+      - FLASK_ENV=production,FLASK_DEBUG=0,FB_API_KEY=${_FB_API_KEY},FB_AUTH_DOMAIN=${_FB_AUTH_DOMAIN},FB_DB_URL=${_FB_DB_URL},FB_PROJECT_ID=${_FB_PROJECT_ID},FB_STORAGE_BUCKET=${_FB_STORAGE_BUCKET},FB_MSG_SENDER_ID=${_FB_MSG_SENDER_ID},FB_APP_ID=${_FB_APP_ID}
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA

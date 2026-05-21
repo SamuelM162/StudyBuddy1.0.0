@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-9">
+    <div class="sb-card p-4 p-md-5">
+      <div class="sb-section-heading mb-4">
+        <span class="sb-eyebrow">{{ tr("Institution", "Inštitúcia") }}</span>
+        <h2 class="mb-2">{{ tr("My institution", "Moja inštitúcia") }}</h2>
+        {% if current_university %}
+          <p class="text-muted mb-0">{{ current_university }}</p>
+        {% else %}
+          <p class="text-muted mb-0">{{ tr("Set your university in your profile to see your local student community.", "Nastav si univerzitu v profile, aby si videl svoju lokálnu študentskú komunitu.") }}</p>
+        {% endif %}
+      </div>
+      {% if not missing_university %}
+        <div class="sb-institution-forum-cta mb-4">
+          <div>
+            <h5 class="mb-1">{{ tr("Institution forum", "Fórum inštitúcie") }}</h5>
+            <p class="text-muted mb-0">{{ tr("Start school discussions, ask questions, and collect advice from classmates.", "Zakladaj školské diskusie, pýtaj sa otázky a zbieraj rady od spolužiakov.") }}</p>
+          </div>
+          <a href="{{ url_for('forum.forum_home') }}" class="btn sb-btn-primary">{{ tr("Open forum", "Otvoriť fórum") }}</a>
+        </div>
+      {% endif %}
+
+      {% if missing_university %}
+        <div class="sb-empty-state">
+          <h5>{{ tr("University not set", "Univerzita nie je nastavená") }}</h5>
+          <p class="text-muted">{{ tr("Choose your university in the profile form and this page will automatically show classmates from the same institution.", "Vyber si univerzitu v profile a táto stránka automaticky zobrazí spolužiakov z rovnakej inštitúcie.") }}</p>
+          <a href="{{ url_for('profile.edit_profile') }}" class="btn sb-btn-primary">{{ tr("Open profile", "Otvoriť profil") }}</a>
+        </div>
+      {% elif members %}
+        <div class="d-grid gap-3">
+          {% for member in members %}
+            <div class="sb-user-card">
+              <div class="sb-user-card-main">
+                {% if member.photo_url %}
+                  <img src="{{ member.photo_url }}" alt="{{ member.display_name }}" class="sb-user-photo">
+                {% else %}
+                  <div class="sb-user-photo sb-user-photo-fallback">{{ (member.display_name or member.email or '?')[0]|upper }}</div>
+                {% endif %}
+                <div>
+                  <h6 class="mb-1">{{ member.display_name }}</h6>
+                  <div class="d-flex flex-wrap gap-2 mb-2">
+                    {% if member.university %}<span class="badge sb-badge-soft">{{ member.university }}</span>{% endif %}
+                    {% if member.faculty %}<span class="badge sb-badge-soft">{{ member.faculty }}</span>{% endif %}
+                  </div>
+                  {% if member.bio %}<p class="small text-muted mb-0">{{ member.bio }}</p>{% endif %}
+                </div>
+              </div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="{{ url_for('profile.view_profile', uid=member.uid) }}" class="btn btn-sm sb-btn-outline">{{ tr("View profile", "Zobraziť profil") }}</a>
+                {% if member.relation == 'friend' %}
+                  <a href="{{ url_for('chat.thread', other_uid=member.uid) }}" class="btn btn-sm sb-btn-primary">{{ tr("Message", "Správa") }}</a>
+                {% elif member.relation == 'pending' %}
+                  <button type="button" class="btn btn-sm sb-btn-outline" disabled>{{ tr("Pending", "Čaká") }}</button>
+                {% else %}
+                  <form method="post" action="{{ url_for('social.send_request', target_uid=member.uid) }}" class="mb-0">
+                    {{ csrf_input()|safe }}
+                    <button type="submit" class="btn btn-sm sb-btn-primary">{{ tr("Add friend", "Pridať priateľa") }}</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="sb-empty-state">
+          <h5>{{ tr("Nobody here yet", "Zatiaľ tu nikto nie je") }}</h5>
+          <p class="text-muted mb-0">{{ tr("You are the first visible member from this institution right now. Invite a classmate or check back later.", "Momentálne si prvý viditeľný člen z tejto inštitúcie. Pozvi spolužiaka alebo sa sem vráť neskôr.") }}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

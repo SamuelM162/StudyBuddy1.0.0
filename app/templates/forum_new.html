@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="sb-card p-4 p-md-5">
+      <div class="sb-section-heading mb-4">
+        <span class="sb-eyebrow">{{ tr("Institution forum", "Fórum inštitúcie") }}</span>
+        <h2 class="mb-2">{{ tr("Create a thread", "Vytvoriť vlákno") }}</h2>
+        <p class="text-muted mb-0">{{ current_university }}</p>
+      </div>
+
+      <form method="post" class="d-grid gap-3">
+        {{ csrf_input()|safe }}
+        <div>
+          <label for="category" class="form-label">{{ tr("Category", "Kategória") }}</label>
+          <select id="category" name="category" class="form-select">
+            {% for key, en_label, sk_label in categories %}
+              <option value="{{ key }}">{{ tr(en_label, sk_label) }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label for="title" class="form-label">{{ tr("Title", "Názov") }}</label>
+          <input id="title" name="title" type="text" class="form-control" maxlength="140" required
+                 placeholder="{{ tr('What do you need help with?', 'S čím potrebuješ poradiť?') }}">
+        </div>
+        <div>
+          <label for="body" class="form-label">{{ tr("Text", "Text") }}</label>
+          <textarea id="body" name="body" class="form-control" maxlength="3000" required
+                    placeholder="{{ tr('Add context, course names, deadlines, or what you already tried.', 'Pridaj kontext, názvy predmetov, termíny alebo čo si už skúšal/a.') }}"></textarea>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <button type="submit" class="btn sb-btn-primary">{{ tr("Publish thread", "Zverejniť vlákno") }}</button>
+          <a href="{{ url_for('forum.forum_home') }}" class="btn sb-btn-outline">{{ tr("Cancel", "Zrušiť") }}</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

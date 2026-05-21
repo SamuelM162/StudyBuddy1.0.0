@@ -1,0 +1,13 @@
+.git
+.github
+.idea
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+.env
+docker-compose.yml
+app/*firebase-adminsdk*.json
